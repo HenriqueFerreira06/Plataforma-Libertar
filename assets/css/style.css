@@ -1,0 +1,11 @@
+
+:root {
+    --cor-fundo-escuro: #34404e; 
+    --cor-primaria: #2ec1d0;     
+    --cor-secundaria: #728498;  
+    --cor-input-bg: #e2e6eb;    
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
