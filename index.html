@@ -3,45 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema Libertar</title>
+    <title>Login - Plataforma Libertar</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/login.css">
 </head>
-<body class="login-bg">
+<body>
 
-    <div class="container d-flex flex-column justify-content-center align-items-center vh-100">
+    <div class="container-fluid vh-100 p-0">
+        <div class="row g-0 h-100">
+            
+            <div class="col-md-6 d-none d-md-block login-image-side">
+                </div>
 
-        <div class="login-logo mb-4 text-center">
-            <h3 class="text-white fw-bold">Sistema Libertar</h3>
+            <div class="col-md-6 login-form-side d-flex flex-column">
+                
+                <div class="color-stripe"></div>
+
+                <div class="d-flex flex-column justify-content-center align-items-center flex-grow-1 px-4">
+                    
+                <div class="mb-5 text-center d-flex justify-content-center">
+                    <img src="assets/img/libertar-logo.jpg" alt="Logo Libertar pela Educação" class="img-fluid" style="max-width: 350px;">
+                </div>
+
+                    <h2 class="text-white mb-4 fw-light" style="font-size: 2rem;">LOGIN</h2>
+
+                    <form action="dashboard.html" class="w-100" style="max-width: 380px;">
+                        
+                        <div class="mb-3">
+                            <label class="text-white mb-1 small">E-mail</label>
+                            <input type="email" class="form-control login-input" placeholder="Digite seu e-mail" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="text-white mb-1 small">Senha</label>
+                            <input type="password" class="form-control login-input" placeholder="Digite sua senha" required>
+                        </div>
+
+                        <div class="mb-5 text-start">
+                            <a href="#" class="forgot-password-link">Esqueceu a senha?</a>
+                        </div>
+
+                        <button type="submit" class="btn btn-login w-100 py-3">ENTRAR</button>
+                    </form>
+
+                </div>
+            </div>
+
         </div>
-
-        <div class="card login-card shadow-lg border-0">
-            <div class="card-body p-5 pb-4">
-                <h2 class="text-center mb-4 login-title">Login</h2>
-
-                <form action="dashboard.html">
-                    <div class="mb-3">
-                        <input type="email" class="form-control login-input" placeholder="E-mail" required>
-                    </div>
-                    <div class="mb-4">
-                        <input type="password" class="form-control login-input" placeholder="Senha" required>
-                    </div>
-                    <button type="submit" class="btn btn-login px-4 py-2">ENTRAR</button>
-                </form>
-            </div>
-
-            <div class="bg-white border-top p-4 text-end">
-                <a href="#" class="forgot-password-link">Esqueceu a senha?</a>
-            </div>
-
-            <div class="login-secure-footer text-center p-3">
-                SITE SEGURO
-            </div>
-        </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

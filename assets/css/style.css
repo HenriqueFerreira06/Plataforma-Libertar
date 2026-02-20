@@ -7,5 +7,98 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Codec Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f4f7fa; 
+}
+
+
+.top-navbar {
+    background-color: var(--cor-fundo-escuro);
+    padding: 10px 20px;
+    color: white;
+}
+
+.top-navbar .logo-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--cor-primaria);
+    text-decoration: none;
+}
+
+
+.sub-navbar {
+    background-color: #4a5a6b;
+    padding: 0;
+}
+
+.sub-navbar .nav-link {
+    color: #cfd8e3;
+    padding: 15px 20px;
+    font-size: 0.95rem;
+    transition: 0.3s;
+}
+
+.sub-navbar .nav-link:hover, 
+.sub-navbar .nav-link.active {
+    color: white;
+    background-color: #3d4a58;
+}
+
+
+.summary-card {
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.summary-icon-box {
+    width: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.bg-primaria { background-color: var(--cor-primaria); }
+.bg-pendente { background-color: #e74c3c; } 
+
+.summary-text h6 {
+    color: #888;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.summary-text h3 {
+    color: #444;
+    font-weight: bold;
+    margin: 0;
+}
+
+
+.section-title {
+    color: var(--cor-primaria);
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+@font-face {
+    font-family: 'Codec Pro';
+    src: url('../fonts/CodecPro-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Codec Pro';
+    src: url('../fonts/CodecPro-Italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: italic;
 }

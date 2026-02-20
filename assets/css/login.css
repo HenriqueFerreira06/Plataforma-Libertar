@@ -1,71 +1,73 @@
-
-.login-bg {
-    background-color: var(--cor-fundo-escuro);
+/* Lado da Imagem (Esquerdo) */
+.login-image-side {
+    width: 45%;
+    background-image: url('../img/bg-turma.jpg');
+    background-size: cover;
+    background-position: center;
+    background-color: #333; /* Cor de fallback caso a imagem demore a carregar */
 }
 
+/* Lado do Formulário (Direito) */
+.login-form-side {
+    width: 55%;
+    background-color: #B5AFA1; /* Cor de fundo exata do seu Canva */
+    position: relative;
+}
 
-.login-card {
+/* Faixa superior colorida (Verde, Amarelo, Vermelho, Preto) */
+.color-stripe {
+    height: 25px;
     width: 100%;
-    max-width: 400px;
-    border-radius: 0; 
+    background: linear-gradient(to bottom, 
+        #111111 0%, #111111 25%,
+        #F8C300 25%, #F8C300 50%, 
+        #D9272E 50%, #D9272E 75%, 
+        #589E97 75%, #589E97 100%);
 }
 
-
-.login-title {
-    color: var(--cor-primaria);
-    font-weight: 300;
-    font-size: 2.2rem;
-}
-
-
+/* Campos de Input */
 .login-input {
-    background-color: var(--cor-input-bg);
+    background-color: #D2CDC3; /* Fundo do input */
     border: none;
     border-radius: 0;
     padding: 12px 15px;
-    color: #444;
+    color: #555;
+    font-size: 0.95rem;
 }
 
 .login-input:focus {
-    background-color: #d1d6dc;
+    background-color: #e0dbd2;
     box-shadow: none;
     outline: none;
 }
 
 .login-input::placeholder {
-    color: #8c99a6;
+    color: #9c968d;
 }
 
-
+/* Botão ENTRAR */
 .btn-login {
-    background-color: var(--cor-primaria);
+    background-color: #8C847A; /* Cor do botão */
     color: white;
-    font-weight: bold;
+    font-weight: 500;
+    letter-spacing: 1px;
     border-radius: 0;
     border: none;
+    transition: 0.3s;
 }
 
 .btn-login:hover {
-    background-color: #25a1ae;
+    background-color: #7a736a;
     color: white;
 }
 
-
+/* Link Esqueci a senha */
 .forgot-password-link {
-    color: var(--cor-primaria);
+    color: #4A58CF; /* Azul puxado pro roxo do seu print */
     text-decoration: none;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
 }
 
 .forgot-password-link:hover {
     text-decoration: underline;
-}
-
-
-.login-secure-footer {
-    background-color: var(--cor-secundaria);
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
 }
