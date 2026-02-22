@@ -1,104 +1,264 @@
+/* =========================================
+    LAYOUT DO SISTEMA - DASHBOARD (PRÉ-ALPHA)
+========================================= */
 
+/* Variáveis de Cores */
 :root {
-    --cor-fundo-escuro: #34404e; 
-    --cor-primaria: #2ec1d0;     
-    --cor-secundaria: #728498;  
-    --cor-input-bg: #e2e6eb;    
+    --dash-bg: #bab2a7;           
+    --card-bg: #ddd6cd;           
+    --text-main: #545454;         
+    
+    --side-logo-bg: #59544f;      
+    --side-bg: #ddd6cd;           
+    --side-active-bg: #8f8982;    
+    --side-active-text: #ddd6cd;  
+    --side-text: #625c55;         
+    
+    --ativo-bg: #52a1bd;          
+    --ativo-icon: #70d7fb;        
+    --inativo-bg: #c24d4f;        
+    --inativo-icon: #ff595c;      
 }
 
-body {
-    font-family: 'Codec Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+* {
+    font-family: 'Codec Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
 }
 
-body {
-    background-color: #f4f7fa; 
+body.dashboard-body {
+    background-color: var(--dash-bg);
+    color: var(--text-main);
+    /* Zoom 75% aplicado conforme solicitado */
+    zoom: 75%;
 }
 
-
-.top-navbar {
-    background-color: var(--cor-fundo-escuro);
-    padding: 10px 20px;
-    color: white;
+.user-greeting, .sidebar-menu li a, .status-info span.title, .dados-header h5, .dash-text-link, .periodo, .instrucao {
+    font-weight: normal !important;
 }
 
-.top-navbar .logo-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--cor-primaria);
-    text-decoration: none;
+.status-info span.number, .data-large-number {
+    font-weight: bold !important;
 }
 
+.wrapper {
+    display: flex;
+    min-height: 133.33vh;
+}
 
-.sub-navbar {
-    background-color: #4a5a6b;
+/* =========================================
+    SIDEBAR (MENU LATERAL)
+========================================= */
+.sidebar {
+    width: 260px;
+    background-color: var(--side-bg);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-logo-area {
+    background-color: var(--side-logo-bg);
+    padding: 20px;
+    text-align: center;
+}
+
+.sidebar-logo-area img { max-width: 140px; }
+
+.sidebar-menu {
+    list-style: none;
     padding: 0;
+    margin: 0; 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
 }
 
-.sub-navbar .nav-link {
-    color: #cfd8e3;
-    padding: 15px 20px;
-    font-size: 0.95rem;
-    transition: 0.3s;
+.sidebar-menu li {
+    width: 100%;
 }
 
-.sub-navbar .nav-link:hover, 
-.sub-navbar .nav-link.active {
-    color: white;
-    background-color: #3d4a58;
-}
-
-
-.summary-card {
-    border: none;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.summary-icon-box {
-    width: 80px;
+.sidebar-menu li a {
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: white;
-}
-
-.bg-primaria { background-color: var(--cor-primaria); }
-.bg-pendente { background-color: #e74c3c; } 
-
-.summary-text h6 {
-    color: #888;
-    font-weight: 600;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-.summary-text h3 {
-    color: #444;
-    font-weight: bold;
-    margin: 0;
-}
-
-
-.section-title {
-    color: var(--cor-primaria);
+    padding: 15px 25px;
+    color: var(--side-text);
+    text-decoration: none;
     font-size: 1rem;
-    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.sidebar-menu li a i {
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.sidebar-menu li a.active {
+    background-color: var(--side-active-bg);
+    color: var(--side-active-text);
+}
+
+.sidebar-menu li a:hover:not(.active) {
+    background-color: rgba(143, 137, 130, 0.2); 
+}
+
+.sidebar-menu li a.logout-link:hover {
+    background-color: #c24d4f !important;
+    color: white !important;
+}
+
+/* =========================================
+    SUBMENU (ACCORDION HOVER)
+========================================= */
+.dropdown-hover {
+    overflow: hidden;
+}
+
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.05);
+    max-height: 0; /* Escondido */
+    transition: max-height 0.4s ease-in-out; /* Animação de expansão */
+}
+
+/* Expande ao passar o mouse, empurrando os itens de baixo */
+.dropdown-hover:hover .submenu {
+    max-height: 250px; 
+}
+
+.submenu li a {
+    padding: 12px 45px !important;
+    font-size: 0.9rem !important;
+    transition: 0.2s;
+}
+
+.submenu li a i {
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.submenu li a:hover {
+    background-color: rgba(143, 137, 130, 0.15) !important;
+}
+/* =========================================
+    CONTEÚDO PRINCIPAL (DASHBOARD)
+========================================= */
+.main-content {
+    flex-grow: 1;
+    padding: 40px 120px; 
+}
+
+.user-greeting {
+    color: var(--text-main);
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    text-align: right; 
     text-transform: uppercase;
-    border-bottom: 2px solid #eee;
+}
+
+.dash-card {
+    background-color: var(--card-bg);
+    border-radius: 0; 
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+/* CARD 1: ALUNOS */
+.status-group {
+    display: flex;
+    align-items: flex-start;
+}
+
+.square-icon {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    border-radius: 0; 
+}
+
+.box-ativo { background-color: var(--ativo-bg); color: var(--ativo-icon); }
+.box-inativo { background-color: var(--inativo-bg); color: var(--inativo-icon); }
+
+.status-info {
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    line-height: 1; 
+    align-items: center; 
+}
+
+.status-info span.title {
+    font-size: 1.1rem; 
+    color: var(--text-main);
+    margin-bottom: 5px;
+    margin-top: 2px;
+}
+
+.status-info span.number {
+    font-size: 2.2rem; 
+    color: var(--text-main);
+}
+
+/* CARD 2: DADOS */
+.dados-header {
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
 
-@font-face {
-    font-family: 'Codec Pro';
-    src: url('../fonts/CodecPro-Regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+.dados-header h5 {
+    color: var(--text-main);
+    margin: 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
 }
 
-@font-face {
-    font-family: 'Codec Pro';
-    src: url('../fonts/CodecPro-Italic.ttf') format('truetype');
-    font-weight: normal;
-    font-style: italic;
+.dados-header .periodo {
+    font-size: 0.8rem;
+    color: var(--text-main);
+    opacity: 0.7;
+    margin-left: 10px;
+}
+
+.dados-header .instrucao {
+    font-size: 0.75rem;
+    color: var(--text-main);
+    opacity: 0.7;
+}
+
+.data-large-number {
+    font-size: 3rem;
+    color: var(--text-main);
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.dash-text-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    transition: 0.2s;
+    width: fit-content; 
+}
+
+.dash-text-link:hover { opacity: 0.8; }
+
+.arrow-square {
+    width: 24px;
+    height: 24px;
+    background-color: #59544f;
+    color: var(--card-bg); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+    font-size: 1.1rem;
 }

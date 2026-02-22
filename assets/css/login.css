@@ -1,3 +1,12 @@
+body {
+    zoom: 75%;
+}
+
+/* Corrige o buraco branco no rodapé causado pelo zoom */
+.vh-100 {
+    height: 133.33vh !important;
+}
+
 /* Lado da Imagem (Esquerdo) */
 .login-image-side {
     width: 45%;
