@@ -141,6 +141,7 @@ body.dashboard-body {
 .submenu li a:hover {
     background-color: rgba(143, 137, 130, 0.15) !important;
 }
+
 /* =========================================
     CONTEÚDO PRINCIPAL (DASHBOARD)
 ========================================= */
@@ -261,4 +262,139 @@ body.dashboard-body {
     align-items: center;
     margin-left: 8px;
     font-size: 1.1rem;
+}
+
+/* =========================================
+   ESTILOS GERAIS PARA AS TELAS (NOVO/CONSULTA)
+========================================= */
+
+/* Trava o scroll da tela */
+body.no-scroll {
+    overflow: hidden;
+    height: 133.33vh; /* Compensação exata do zoom de 75% */
+}
+
+/* Faz o main e o card ocuparem a altura total disponível */
+.main-content {
+    display: flex;
+    flex-direction: column;
+}
+.dash-card {
+    height: 100%;
+}
+
+/* Textos e Inputs */
+.custom-form .form-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--side-logo-bg); /* Usa o marrom escuro da paleta */
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.dash-input {
+    background-color: #ede7df; /* Destaca levemente o input do card */
+    border: 1px solid #c2bbb0;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    border-radius: 4px;
+}
+
+.dash-input:focus {
+    background-color: #f5f1ea;
+    border-color: var(--side-logo-bg);
+    box-shadow: none;
+    outline: 1px solid var(--side-logo-bg);
+}
+
+/* Botões Form */
+.btn-salvar {
+    background-color: var(--side-logo-bg);
+    color: var(--card-bg);
+    font-weight: bold;
+    padding: 8px 30px;
+    border: none;
+    border-radius: 0px;
+    transition: 0.2s;
+}
+
+.btn-salvar:hover {
+    background-color: #433f3a;
+    color: white;
+}
+
+.btn-cancelar {
+    background-color: transparent;
+    color: var(--side-logo-bg);
+    font-weight: bold;
+    padding: 8px 30px;
+    border: 1px solid var(--side-logo-bg);
+    border-radius: 0px;
+    transition: 0.2s;
+}
+
+.btn-cancelar:hover {
+    background-color: rgba(89, 84, 79, 0.1);
+    color: var(--side-logo-bg);
+}
+
+/* =========================================
+   ESTILOS DE TABELA (LOCALIZAR ALUNO)
+========================================= */
+.table-container {
+    overflow-y: auto;
+    max-height: calc(100% - 70px); /* Deixa espaço para os filtros em cima */
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background-color: var(--side-logo-bg);
+    color: var(--side-active-text);
+    padding: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: normal;
+    position: sticky;
+    top: 0;
+}
+
+.custom-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(89, 84, 79, 0.15);
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.custom-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Badges de Status na Tabela */
+.badge-status {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+}
+.status-ativo { background-color: var(--ativo-bg); }
+.status-inativo { background-color: var(--inativo-bg); }
+
+/* Botões de Ação na Tabela */
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--side-logo-bg);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    margin: 0 3px;
+}
+
+.btn-icon:hover {
+    color: var(--ativo-bg);
 }
