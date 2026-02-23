@@ -45,7 +45,7 @@
 
             <div class="dash-card d-flex flex-column justify-content-between">
                 
-                <form class="custom-form flex-grow-1">
+                <form id="form-novo-aluno" class="custom-form flex-grow-1">
                     
                     <div class="row g-3 mb-3">
                         <div class="col-md-2">
@@ -54,7 +54,7 @@
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Polo <span class="text-danger">*</span></label>
-                            <select class="form-select dash-input">
+                            <select class="form-select dash-input" id="polo">
                                 <option selected disabled>Selecione o polo...</option>
                                 <option>Polo Central</option>
                                 <option>Polo Norte</option>
@@ -62,7 +62,7 @@
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Turma <span class="text-danger">*</span></label>
-                            <select class="form-select dash-input">
+                            <select id="turma" class="form-select dash-input">
                                 <option selected disabled>Selecione a turma...</option>
                                 <option>Turma A - Manhã</option>
                                 <option>Turma B - Tarde</option>
@@ -73,7 +73,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Nome Completo (Civil) <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control dash-input" placeholder="Digite o nome completo">
+                            <input type="text" id="nome" class="form-control dash-input" placeholder="Digite o nome completo">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nome Social</label>
@@ -112,8 +112,8 @@
                             <input type="tel" id="celular" class="form-control dash-input" placeholder="(00) 00000-0000">
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label">E-mail</label>
-                            <input type="email" class="form-control dash-input" placeholder="exemplo@email.com">
+                            <label class="form-label" >E-mail</label>
+                            <input type="email" id="email" class="form-control dash-input" placeholder="exemplo@email.com">
                         </div>
                     </div>
 
@@ -121,7 +121,7 @@
 
                 <div class="d-flex justify-content-end gap-3 mt-auto pt-3" style="border-top: 1px solid rgba(89, 84, 79, 0.2);">
                     <button type="button" class="btn btn-cancelar">Cancelar</button>
-                    <button type="button" class="btn btn-salvar">Salvar Cadastro</button>
+                    <button type="submit" form="form-novo-aluno" class="btn btn-salvar">Salvar Cadastro</button>
                 </div>
 
             </div>
@@ -130,7 +130,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
+    <script type="module" src="../assets/js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const inputCpf = document.getElementById('cpf');
