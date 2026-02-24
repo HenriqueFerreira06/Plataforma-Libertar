@@ -33,7 +33,16 @@
                 </li>
 
                 <li><a href="../presenca.html"><i class="bi bi-calendar-check-fill"></i> Presença</a></li>
-                <li><a href="../administracao.html"><i class="bi bi-gear-fill"></i> Administração</a></li>
+                
+                <li class="dropdown-hover">
+                    <a href="javascript:void(0)">
+                        <i class="bi bi-gear-fill"></i> Administração
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="../Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
+                        <li><a href="../Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
+                    </ul>
+                </li>
                 
                 <li class="mt-auto"><a href="../index.html" class="logout-link"><i class="bi bi-box-arrow-left"></i> Sair</a></li>
             </ul>
@@ -137,10 +146,9 @@
             const inputRg = document.getElementById('rg');
             const inputCelular = document.getElementById('celular');
 
-            // Máscara CPF: Trava nos exatos 11 caracteres para evitar formatações erradas
             inputCpf.addEventListener('input', function (e) {
-                let v = e.target.value.replace(/\D/g, ""); // Apenas números
-                v = v.substring(0, 11); // Trava em 11
+                let v = e.target.value.replace(/\D/g, ""); 
+                v = v.substring(0, 11); 
                 
                 if (v.length > 9) {
                     v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
@@ -152,10 +160,9 @@
                 e.target.value = v;
             });
 
-            // Máscara RG: Limita em 9, permitindo número e o "X" comum em RGs
             inputRg.addEventListener('input', function (e) {
-                let v = e.target.value.toUpperCase().replace(/[^\dX]/g, ""); // Números e X
-                v = v.substring(0, 9); // Trava em 9
+                let v = e.target.value.toUpperCase().replace(/[^\dX]/g, ""); 
+                v = v.substring(0, 9); 
                 
                 if (v.length > 8) {
                     v = v.replace(/(\d{2})(\d{3})(\d{3})([\dX])/, "$1.$2.$3-$4");
@@ -167,7 +174,6 @@
                 e.target.value = v;
             });
 
-            // Máscara Celular: Trava exato (11 dígitos)
             inputCelular.addEventListener('input', function (e) {
                 let v = e.target.value.replace(/\D/g, ""); 
                 v = v.substring(0, 11); 
