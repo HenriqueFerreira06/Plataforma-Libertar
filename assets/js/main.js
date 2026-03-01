@@ -1,7 +1,7 @@
 // 1. Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // 2. As suas chaves exclusivas do projeto Libertar
 const firebaseConfig = {
@@ -103,4 +103,64 @@ if (formNovoAluno) {
                 }
             });
     });
+}
+
+// ==========================================
+// MÓDULO 3: CONSULTAR ALUNOS (consultaAluno.html)
+// ==========================================
+const tabelaAlunos = document.getElementById('tabela-alunos');
+
+if (tabelaAlunos) {
+    // Função para ir no Firebase e fazer a tabela
+    async function carregarAlunos() {
+        // Mensagem de carregamento enquanto o Firebase carrega os dados
+        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Buscando alunos no banco de dados...</td></tr>';
+        
+        try {
+            // Pede para o Firebase todos os documentos da coleção "alunos"
+            const querySnapshot = await getDocs(collection(db, "alunos"));
+            
+            // Limpa a tabela
+            tabelaAlunos.innerHTML = ''; 
+
+            if(querySnapshot.empty) {
+                tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Nenhum aluno cadastrado ainda.</td></tr>';
+                return;
+            }
+
+            // Para cada aluno que ele achar, ele cria uma <tr> (linha) nova
+            querySnapshot.forEach((doc) => {
+                const aluno = doc.data();
+                
+                // Exibe os primeiros 5 caracteres do ID do Firebase como uma matrícula visual
+                const matricula = doc.id.substring(0, 5).toUpperCase(); 
+
+                const row = `
+                    <tr>
+                        <td class="fw-bold text-secondary">#${matricula}</td>
+                        <td>${aluno.nome_completo}</td>
+                        <td>${aluno.polo}</td>
+                        <td>${aluno.turma}</td>
+                        <td>
+                            <span class="badge ${aluno.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
+                                ${aluno.status.toUpperCase()}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
+                        </td>
+                    </tr>
+                `;
+                // Injeta a linha pronta no HTML
+                tabelaAlunos.innerHTML += row;
+            });
+
+        } catch (error) {
+            console.error("Erro ao buscar alunos:", error);
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro ao carregar dados de alunos.</td></tr>';
+        }
+    }
+
+    // Chama a função assim que a página abrir
+    carregarAlunos();
 }
