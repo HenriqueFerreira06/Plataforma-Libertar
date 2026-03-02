@@ -106,61 +106,111 @@ if (formNovoAluno) {
 }
 
 // ==========================================
-// MÓDULO 3: CONSULTAR ALUNOS (consultaAluno.html)
+// MÓDULO 3: CONSULTAR ALUNOS 
 // ==========================================
 const tabelaAlunos = document.getElementById('tabela-alunos');
 
+// Pega os campos de filtro do HTML
+const inputBusca = document.getElementById('busca-nome');
+const selectPolo = document.getElementById('filtro-polo');
+const selectTurma = document.getElementById('filtro-turma');
+const selectStatus = document.getElementById('filtro-status'); 
+
+// Memória temporária para não gastar o banco de dados
+let listaDeAlunos = []; 
+
 if (tabelaAlunos) {
-    // Função para ir no Firebase e fazer a tabela
-    async function carregarAlunos() {
-        // Mensagem de carregamento enquanto o Firebase carrega os dados
-        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Buscando alunos no banco de dados...</td></tr>';
-        
+    // 1. Busca no banco UMA ÚNICA VEZ
+    async function buscarAlunosNoBanco() {
+        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Buscando alunos no servidor...</td></tr>';
         try {
-            // Pede para o Firebase todos os documentos da coleção "alunos"
             const querySnapshot = await getDocs(collection(db, "alunos"));
+            listaDeAlunos = []; // Zera a lista
             
-            // Limpa a tabela
-            tabelaAlunos.innerHTML = ''; 
-
-            if(querySnapshot.empty) {
-                tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Nenhum aluno cadastrado ainda.</td></tr>';
-                return;
-            }
-
-            // Para cada aluno que ele achar, ele cria uma <tr> (linha) nova
             querySnapshot.forEach((doc) => {
                 const aluno = doc.data();
-                
-                // Exibe os primeiros 5 caracteres do ID do Firebase como uma matrícula visual
-                const matricula = doc.id.substring(0, 5).toUpperCase(); 
-
-                const row = `
-                    <tr>
-                        <td class="fw-bold text-secondary">#${matricula}</td>
-                        <td>${aluno.nome_completo}</td>
-                        <td>${aluno.polo}</td>
-                        <td>${aluno.turma}</td>
-                        <td>
-                            <span class="badge ${aluno.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
-                                ${aluno.status.toUpperCase()}
-                            </span>
-                        </td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
-                        </td>
-                    </tr>
-                `;
-                // Injeta a linha pronta no HTML
-                tabelaAlunos.innerHTML += row;
+                aluno.idFirebase = doc.id; // Guarda a chave do aluno
+                listaDeAlunos.push(aluno); // Salva na memória do navegador
             });
+
+            // Mostra todo mundo na primeira vez
+            desenharTabela(listaDeAlunos);
 
         } catch (error) {
             console.error("Erro ao buscar alunos:", error);
-            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro ao carregar dados de alunos.</td></tr>';
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro de conexão com o banco de dados.</td></tr>';
         }
     }
 
-    // Chama a função assim que a página abrir
-    carregarAlunos();
+    // 2. Função que constrói as linhas
+    function desenharTabela(alunosParaMostrar) {
+        tabelaAlunos.innerHTML = ''; 
+        
+        if(alunosParaMostrar.length === 0) {
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum aluno encontrado com esses filtros.</td></tr>';
+            return;
+        }
+
+        alunosParaMostrar.forEach((aluno) => {
+            const matricula = aluno.idFirebase.substring(0, 5).toUpperCase(); 
+            const row = `
+                <tr>
+                    <td class="fw-bold text-secondary">#${matricula}</td>
+                    <td>${aluno.nome_completo}</td>
+                    <td>${aluno.polo}</td>
+                    <td>${aluno.turma}</td>
+                    <td>
+                        <span class="badge ${aluno.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
+                            ${aluno.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
+                    </td>
+                </tr>
+            `;
+            tabelaAlunos.innerHTML += row;
+        });
+    }
+
+    // 3. Filtros
+    function aplicarFiltros() {
+        let alunosFiltrados = listaDeAlunos;
+
+        // Filtra por Nome ou CPF digitado
+        if (inputBusca && inputBusca.value.trim() !== '') {
+            const termo = inputBusca.value.toLowerCase();
+            alunosFiltrados = alunosFiltrados.filter(aluno => 
+                aluno.nome_completo.toLowerCase().includes(termo) || 
+                (aluno.cpf && aluno.cpf.includes(termo))
+            );
+        }
+
+        // Filtra pelo Polo escolhido (Ignora se for "todos")
+        if (selectPolo && selectPolo.value !== "todos") {
+            alunosFiltrados = alunosFiltrados.filter(aluno => aluno.polo === selectPolo.value);
+        }
+
+        // Filtra pela Turma escolhida (Ignora se for "todos")
+        if (selectTurma && selectTurma.value !== "todos") {
+            alunosFiltrados = alunosFiltrados.filter(aluno => aluno.turma === selectTurma.value);
+        }
+
+        // Filtra pelo Status escolhido (Ignora se for "todos")
+        if (selectStatus && selectStatus.value !== "todos") {
+            alunosFiltrados = alunosFiltrados.filter(aluno => aluno.status === selectStatus.value);
+        }
+
+        // Desenha a tabela de novo só com os sobreviventes do filtro
+        desenharTabela(alunosFiltrados);
+    }
+
+    
+    if(inputBusca) inputBusca.addEventListener('input', aplicarFiltros);
+    if(selectPolo) selectPolo.addEventListener('change', aplicarFiltros);
+    if(selectTurma) selectTurma.addEventListener('change', aplicarFiltros);
+    if(selectStatus) selectStatus.addEventListener('change', aplicarFiltros);
+
+   
+    buscarAlunosNoBanco();
 }

@@ -54,22 +54,29 @@
 
             <div class="dash-card d-flex flex-column">
                 
-                <div class="row g-2 mb-4 custom-form d-flex align-items-end">
-                    <div class="col-md-5">
-                        <input type="text" class="form-control dash-input" placeholder="Buscar por Nome, Matrícula ou CPF...">
+                                <div class="row g-2 mb-4 custom-form d-flex align-items-end">
+                    <div class="col-md-4">
+                        <input type="text" id="busca-nome" class="form-control dash-input" placeholder="Buscar por Nome...">
                     </div>
                     <div class="col-md-3">
-                        <select class="form-select dash-input">
-                            <option selected>Todos os Polos</option>
-                            <option>Polo Central</option>
-                            <option>Polo Norte</option>
+                        <select id="filtro-polo" class="form-select dash-input">
+                            <option selected value="todos">Todos os Polos</option>
+                            <option value="Polo Central">Polo Central</option>
+                            <option value="Polo Norte">Polo Norte</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select dash-input">
-                            <option selected>Status (Todos)</option>
-                            <option>Ativo</option>
-                            <option>Inativo</option>
+                    <div class="col-md-2">
+                        <select id="filtro-turma" class="form-select dash-input">
+                            <option selected value="todos">Todas as Turmas</option>
+                            <option value="Turma A - Manhã">Turma A - Manhã</option>
+                            <option value="Turma B - Tarde">Turma B - Tarde</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="filtro-status" class="form-select dash-input">
+                            <option selected value="todos">Status (Todos)</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
                         </select>
                     </div>
                     <div class="col-md-1">
