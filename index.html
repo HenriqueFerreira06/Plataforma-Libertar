@@ -16,7 +16,7 @@
         <div class="row g-0 h-100">
             
             <div class="col-md-6 d-none d-md-block login-image-side">
-                </div>
+            </div>
 
             <div class="col-md-6 login-form-side d-flex flex-column">
                 
@@ -24,9 +24,9 @@
 
                 <div class="d-flex flex-column justify-content-center align-items-center flex-grow-1 px-4">
                     
-                <div class="mb-5 text-center d-flex justify-content-center">
-                    <img src="assets/img/libertar-logo.jpg" alt="Logo Libertar pela Educação" class="img-fluid" style="max-width: 350px;">
-                </div>
+                    <div class="mb-5 text-center d-flex justify-content-center">
+                        <img src="assets/img/libertar-logo.jpg" alt="Logo Libertar pela Educação" class="img-fluid" style="max-width: 350px;">
+                    </div>
 
                     <h2 class="text-white mb-4 fw-light" style="font-size: 2rem;">LOGIN</h2>
 
@@ -43,7 +43,7 @@
                         </div>
 
                         <div class="mb-5 text-start">
-                            <a href="#" class="forgot-password-link">Esqueceu a senha?</a>
+                           <a href="#" class="forgot-password-link" data-bs-toggle="modal" data-bs-target="#modalEsqueciSenha">Esqueceu a senha?</a>
                         </div>
 
                         <button type="submit" class="btn btn-login w-100 py-3">ENTRAR</button>
@@ -55,7 +55,24 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="modal fade" id="modalEsqueciSenha" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background-color: var(--bg-main, #2b2b2b); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title text-white">Redefinir Senha</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-white-50 mb-3 small">Digite o e-mail cadastrado na sua conta para receber o link de recuperação seguro.</p>
+                    <input type="email" id="email-recuperacao" class="form-control login-input" placeholder="Digite seu e-mail...">
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btn-enviar-recuperacao" class="btn btn-salvar">Enviar Link</button>
+                </div>
+            </div>
+        </div>
+    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

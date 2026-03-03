@@ -1,6 +1,6 @@
 // 1. Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // 2. As suas chaves exclusivas do projeto Libertar
@@ -48,6 +48,52 @@ if (formLogin) {
                 }
             });
     });
+
+
+const btnEnviarRecuperacao = document.getElementById('btn-enviar-recuperacao');
+
+if (btnEnviarRecuperacao) {
+    btnEnviarRecuperacao.addEventListener('click', () => {
+        // Pega o e-mail que o usuário digitou dentro do Modal
+        const emailParaReset = document.getElementById('email-recuperacao').value;
+
+        if (!emailParaReset) {
+            alert("Por favor, digite um e-mail válido.");
+            return;
+        }
+
+        
+        btnEnviarRecuperacao.innerText = "Enviando...";
+        btnEnviarRecuperacao.disabled = true;
+
+        sendPasswordResetEmail(auth, emailParaReset)
+            .then(() => {
+                alert("E-mail de redefinição enviado! Verifique sua caixa de entrada (e o Spam).");
+                
+                
+                const modalElement = document.getElementById('modalEsqueciSenha');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                modalInstance.hide();
+                
+                
+                document.getElementById('email-recuperacao').value = '';
+            })
+            .catch((error) => {
+                if (error.code === 'auth/invalid-email') {
+                    alert("Erro: O formato do e-mail é inválido.");
+                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/missing-email') {
+                    alert("Erro: Este e-mail não está cadastrado no sistema.");
+                } else {
+                    alert("Erro ao enviar o e-mail: " + error.message);
+                }
+            })
+            .finally(() => {
+                // Volta o botão ao estado normal
+                btnEnviarRecuperacao.innerText = "Enviar Link";
+                btnEnviarRecuperacao.disabled = false;
+            });
+    });
+}
 }
 
 // ==========================================
