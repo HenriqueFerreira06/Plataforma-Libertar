@@ -1,9 +1,9 @@
 // 1. Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// 2. As suas chaves exclusivas do projeto Libertar
+// 2. Configurações de autenticação do projeto Libertar
 const firebaseConfig = {
   apiKey: "AIzaSyBlZj_j8WZC4fALp9aPhzNyaXZaqrsoVqs",
   authDomain: "libertarbd.firebaseapp.com",
@@ -13,17 +13,17 @@ const firebaseConfig = {
   appId: "1:989803267776:web:4227525600b40d38d70f25"
 };
 
-// 3. Inicializa o Firebase Principal (Usado para o Login)
+// 3. Inicialização do Firebase Principal (Autenticação e Banco de Dados)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 4. Inicializa o "Firebase Secundário" (Para cadastrar sem deslogar o usuario)
+// 4. Inicialização do projeto secundário (Permite cadastros sem alterar a sessão atual)
 const appCadastro = initializeApp(firebaseConfig, "AppParaCadastros");
 const authCadastro = getAuth(appCadastro);
 
 // ==========================================
-// MÓDULO 1: TELA DE LOGIN (index.html)
+// MÓDULO 1: AUTENTICAÇÃO E RECUPERAÇÃO DE SENHA (index.html)
 // ==========================================
 const formLogin = document.getElementById('form-login');
 
@@ -34,70 +34,70 @@ if (formLogin) {
         const email = document.getElementById('email-login').value;
         const senha = document.getElementById('senha-login').value;
 
-        // Tenta fazer o login no Firebase principal
+        // Autenticação de usuário no Firebase
         signInWithEmailAndPassword(auth, email, senha)
             .then((userCredential) => {
-                // Manda pro dashboard
+                // Redirecionamento para o painel de controle
                 window.location.href = "dashboard.html"; 
             })
             .catch((error) => {
                 if(error.code === 'auth/invalid-credential') {
-                    alert("E-mail ou senha incorretos!");
+                    alert("Acesso negado: E-mail ou senha incorretos.");
                 } else {
-                    alert("Erro ao fazer login: " + error.message);
+                    alert("Erro de autenticação: " + error.message);
                 }
             });
     });
 
 
-const btnEnviarRecuperacao = document.getElementById('btn-enviar-recuperacao');
+    const btnEnviarRecuperacao = document.getElementById('btn-enviar-recuperacao');
 
-if (btnEnviarRecuperacao) {
-    btnEnviarRecuperacao.addEventListener('click', () => {
-        // Pega o e-mail que o usuário digitou dentro do Modal
-        const emailParaReset = document.getElementById('email-recuperacao').value;
+    if (btnEnviarRecuperacao) {
+        btnEnviarRecuperacao.addEventListener('click', () => {
+            // Obtém o endereço de e-mail informado no Modal
+            const emailParaReset = document.getElementById('email-recuperacao').value;
 
-        if (!emailParaReset) {
-            alert("Por favor, digite um e-mail válido.");
-            return;
-        }
+            if (!emailParaReset) {
+                alert("Por favor, informe um endereço de e-mail válido.");
+                return;
+            }
 
-        
-        btnEnviarRecuperacao.innerText = "Enviando...";
-        btnEnviarRecuperacao.disabled = true;
+            // Atualização do estado do botão durante a requisição
+            btnEnviarRecuperacao.innerText = "Processando...";
+            btnEnviarRecuperacao.disabled = true;
 
-        sendPasswordResetEmail(auth, emailParaReset)
-            .then(() => {
-                alert("E-mail de redefinição enviado! Verifique sua caixa de entrada (e o Spam).");
-                
-                
-                const modalElement = document.getElementById('modalEsqueciSenha');
-                const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                modalInstance.hide();
-                
-                
-                document.getElementById('email-recuperacao').value = '';
-            })
-            .catch((error) => {
-                if (error.code === 'auth/invalid-email') {
-                    alert("Erro: O formato do e-mail é inválido.");
-                } else if (error.code === 'auth/user-not-found' || error.code === 'auth/missing-email') {
-                    alert("Erro: Este e-mail não está cadastrado no sistema.");
-                } else {
-                    alert("Erro ao enviar o e-mail: " + error.message);
-                }
-            })
-            .finally(() => {
-                // Volta o botão ao estado normal
-                btnEnviarRecuperacao.innerText = "Enviar Link";
-                btnEnviarRecuperacao.disabled = false;
-            });
-    });
-}
+            sendPasswordResetEmail(auth, emailParaReset)
+                .then(() => {
+                    alert("Instruções de redefinição de senha enviadas. Verifique sua caixa de entrada.");
+                    
+                    // Oculta o Modal do Bootstrap após o envio
+                    const modalElement = document.getElementById('modalEsqueciSenha');
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    modalInstance.hide();
+                    
+                    // Limpeza do campo de entrada
+                    document.getElementById('email-recuperacao').value = '';
+                })
+                .catch((error) => {
+                    if (error.code === 'auth/invalid-email') {
+                        alert("Erro: O formato do e-mail informado é inválido.");
+                    } else if (error.code === 'auth/user-not-found' || error.code === 'auth/missing-email') {
+                        alert("Erro: O e-mail informado não consta em nossos registros.");
+                    } else {
+                        alert("Falha ao enviar solicitação: " + error.message);
+                    }
+                })
+                .finally(() => {
+                    // Restauração do estado inicial do botão
+                    btnEnviarRecuperacao.innerText = "Enviar Link";
+                    btnEnviarRecuperacao.disabled = false;
+                });
+        });
+    }
 }
 
 // ==========================================
-// MÓDULO 2: CADASTRAR NOVO ALUNO (novoAluno.html)
+// MÓDULO 2: CADASTRO DE ALUNOS (novoAluno.html)
 // ==========================================
 const formNovoAluno = document.getElementById('form-novo-aluno');
 
@@ -105,27 +105,27 @@ if (formNovoAluno) {
     formNovoAluno.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Pega todos os valores digitados na tela
+        // Coleta de dados do formulário
         const nome = document.getElementById('nome').value;
         const email = document.getElementById('email').value;
         const cpf = document.getElementById('cpf').value;
         const polo = document.getElementById('polo').value;
         const turma = document.getElementById('turma').value;
         
-        // Usa o CPF limpo (sem pontos ou traço) como primeira senha do aluno
+        // Remoção de caracteres especiais do CPF para utilização como senha inicial
         const senhaInicial = cpf.replace(/\D/g, ""); 
 
         if(senhaInicial.length < 6) {
-            alert("Erro: O CPF precisa estar completo para gerar a senha.");
+            alert("Erro de validação: O CPF deve estar completo para a geração da credencial de acesso.");
             return;
         }
 
-        // Cria a conta do aluno no "Firebase Secundário"
+        // Criação de credencial na instância secundária do Firebase Auth
         createUserWithEmailAndPassword(authCadastro, email, senhaInicial)
             .then((userCredential) => {
                 const userAluno = userCredential.user;
                 
-                // Salva os dados extras do aluno no Firestore
+                // Inserção dos dados cadastrais na coleção do Firestore
                 return setDoc(doc(db, "alunos", userAluno.uid), {
                     nome_completo: nome,
                     email: email,
@@ -138,62 +138,62 @@ if (formNovoAluno) {
                 });
             })
             .then(() => {
-                alert("Aluno cadastrado com sucesso! A senha inicial é o CPF (apenas números).");
-                formNovoAluno.reset(); // Limpa a tela para o próximo cadastro
+                alert("Cadastro realizado com sucesso. A senha inicial gerada corresponde aos números do CPF.");
+                formNovoAluno.reset(); // Restauração do formulário
             })
             .catch((error) => {
                 if(error.code === 'auth/email-already-in-use') {
-                    alert("Esse e-mail já está cadastrado no sistema!");
+                    alert("Aviso: O endereço de e-mail informado já possui cadastro ativo no sistema.");
                 } else {
-                    alert("Erro ao cadastrar: " + error.message);
+                    alert("Falha no processo de cadastro: " + error.message);
                 }
             });
     });
 }
 
 // ==========================================
-// MÓDULO 3: CONSULTAR ALUNOS 
+// MÓDULO 3: CONSULTA DE ALUNOS (consultaAluno.html)
 // ==========================================
 const tabelaAlunos = document.getElementById('tabela-alunos');
 
-// Pega os campos de filtro do HTML
+// Mapeamento dos elementos de filtro
 const inputBusca = document.getElementById('busca-nome');
 const selectPolo = document.getElementById('filtro-polo');
 const selectTurma = document.getElementById('filtro-turma');
 const selectStatus = document.getElementById('filtro-status'); 
 
-// Memória temporária para não gastar o banco de dados
+// Array local para armazenamento de dados e otimização de requisições
 let listaDeAlunos = []; 
 
 if (tabelaAlunos) {
-    // 1. Busca no banco UMA ÚNICA VEZ
+    // 1. Executa a requisição ao banco de dados na inicialização da página
     async function buscarAlunosNoBanco() {
-        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Buscando alunos no servidor...</td></tr>';
+        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Estabelecendo conexão com o servidor...</td></tr>';
         try {
             const querySnapshot = await getDocs(collection(db, "alunos"));
-            listaDeAlunos = []; // Zera a lista
+            listaDeAlunos = []; 
             
             querySnapshot.forEach((doc) => {
                 const aluno = doc.data();
-                aluno.idFirebase = doc.id; // Guarda a chave do aluno
-                listaDeAlunos.push(aluno); // Salva na memória do navegador
+                aluno.idFirebase = doc.id; 
+                listaDeAlunos.push(aluno); 
             });
 
-            // Mostra todo mundo na primeira vez
+            // Renderização inicial dos dados consolidados
             desenharTabela(listaDeAlunos);
 
         } catch (error) {
-            console.error("Erro ao buscar alunos:", error);
-            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro de conexão com o banco de dados.</td></tr>';
+            console.error("Falha na recuperação de dados:", error);
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Falha de comunicação com o banco de dados.</td></tr>';
         }
     }
 
-    // 2. Função que constrói as linhas
+    // 2. Método de construção da tabela HTML
     function desenharTabela(alunosParaMostrar) {
         tabelaAlunos.innerHTML = ''; 
         
         if(alunosParaMostrar.length === 0) {
-            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum aluno encontrado com esses filtros.</td></tr>';
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro correspondente aos critérios informados.</td></tr>';
             return;
         }
 
@@ -211,7 +211,7 @@ if (tabelaAlunos) {
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-secondary" title="Editar"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></button>
                     </td>
                 </tr>
             `;
@@ -219,11 +219,11 @@ if (tabelaAlunos) {
         });
     }
 
-    // 3. Filtros
+    // 3. Processamento dos filtros locais
     function aplicarFiltros() {
         let alunosFiltrados = listaDeAlunos;
 
-        // Filtra por Nome ou CPF digitado
+        // Aplicação de filtro textual (Nome ou CPF)
         if (inputBusca && inputBusca.value.trim() !== '') {
             const termo = inputBusca.value.toLowerCase();
             alunosFiltrados = alunosFiltrados.filter(aluno => 
@@ -232,31 +232,212 @@ if (tabelaAlunos) {
             );
         }
 
-        // Filtra pelo Polo escolhido (Ignora se for "todos")
+        // Aplicação de filtro categórico: Polo
         if (selectPolo && selectPolo.value !== "todos") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.polo === selectPolo.value);
         }
 
-        // Filtra pela Turma escolhida (Ignora se for "todos")
+        // Aplicação de filtro categórico: Turma
         if (selectTurma && selectTurma.value !== "todos") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.turma === selectTurma.value);
         }
 
-        // Filtra pelo Status escolhido (Ignora se for "todos")
+        // Aplicação de filtro categórico: Status
         if (selectStatus && selectStatus.value !== "todos") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.status === selectStatus.value);
         }
 
-        // Desenha a tabela de novo só com os sobreviventes do filtro
+        // Atualização da interface baseada no resultado dos filtros
         desenharTabela(alunosFiltrados);
     }
 
-    
+    // Vinculação de eventos (Event Listeners) aos campos de pesquisa
     if(inputBusca) inputBusca.addEventListener('input', aplicarFiltros);
     if(selectPolo) selectPolo.addEventListener('change', aplicarFiltros);
     if(selectTurma) selectTurma.addEventListener('change', aplicarFiltros);
     if(selectStatus) selectStatus.addEventListener('change', aplicarFiltros);
 
-   
+    // Inicializa a recuperação de dados
     buscarAlunosNoBanco();
+}
+
+// ==========================================
+// MÓDULO 4: REGISTRO DE PRESENÇA (presenca.html)
+// ==========================================
+const btnCarregarTurma = document.getElementById('btn-carregar-turma');
+const tabelaChamada = document.getElementById('tabela-chamada');
+const btnAddVisitante = document.getElementById('btn-add-visitante');
+const btnSalvarChamada = document.getElementById('btn-salvar-chamada');
+
+if (btnCarregarTurma) {
+    let listaChamada = []; // Armazenamento temporário da listagem diária
+
+    // 1. Consulta de alunos baseada na turma selecionada
+    btnCarregarTurma.addEventListener('click', async () => {
+        const turmaSelecionada = document.getElementById('turma-chamada').value;
+
+        if (!turmaSelecionada || turmaSelecionada === "Selecione a Turma...") {
+            alert("Operação inválida: É necessário selecionar uma turma.");
+            return;
+        }
+
+        tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4">Consultando base de alunos...</td></tr>';
+
+        try {
+            // Consulta no Firestore filtrando por turma e status de matrícula ativo
+            const q = query(collection(db, "alunos"), where("turma", "==", turmaSelecionada), where("status", "==", "ativo"));
+            const querySnapshot = await getDocs(q);
+
+            listaChamada = [];
+            
+            if (querySnapshot.empty) {
+                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">Nenhum registro de aluno ativo localizado para esta turma.</td></tr>';
+                return;
+            }
+
+            // Armazenamento estruturado dos resultados
+            querySnapshot.forEach((doc) => {
+                const aluno = doc.data();
+                listaChamada.push({
+                    idFirebase: doc.id,
+                    nome: aluno.nome_completo,
+                    matricula: doc.id.substring(0, 5).toUpperCase(),
+                    visitante: false
+                });
+            });
+
+            desenharTabelaChamada();
+
+        } catch (error) {
+            console.error("Falha na consulta da turma:", error);
+            tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Erro de comunicação com o servidor.</td></tr>';
+        }
+    });
+
+    // 2. Método de renderização da interface de marcação
+    function desenharTabelaChamada() {
+        tabelaChamada.innerHTML = '';
+        
+        listaChamada.forEach((aluno, index) => {
+            // Definição estrutural das opções de Presença/Falta (Seleção padrão: Presente)
+            const row = `
+                <tr>
+                    <td class="fw-bold text-secondary">#${aluno.matricula}</td>
+                    <td>
+                        ${aluno.nome}
+                        ${aluno.visitante ? '<span class="badge bg-warning text-dark ms-2">Visitante</span>' : ''}
+                    </td>
+                    <td class="text-center">
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="presenca_${index}" id="presente_${index}" value="presente" checked>
+                            <label class="btn btn-outline-success btn-sm px-3" for="presente_${index}">P</label>
+
+                            <input type="radio" class="btn-check" name="presenca_${index}" id="falta_${index}" value="falta">
+                            <label class="btn btn-outline-danger btn-sm px-3" for="falta_${index}">F</label>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tabelaChamada.innerHTML += row;
+        });
+    }
+
+    // 3. Inclusão manual de alunos não regulares
+    if (btnAddVisitante) {
+        btnAddVisitante.addEventListener('click', () => {
+            const inputVisitante = document.getElementById('nome-visitante');
+            const nome = inputVisitante.value.trim();
+
+            if (nome === '') {
+                alert("Validação pendente: Informe o nome do aluno visitante.");
+                return;
+            }
+
+            if (listaChamada.length === 0 && !confirm("Atenção: Nenhuma turma base foi carregada. Confirmar adição de visitante isolado?")) {
+                return;
+            }
+
+            // Inserção do registro provisório no array ativo
+            listaChamada.push({
+                idFirebase: "visitante_" + Date.now(), // Identificador gerado via Timestamp
+                nome: nome,
+                matricula: "VISIT",
+                visitante: true
+            });
+
+            inputVisitante.value = ''; 
+            desenharTabelaChamada(); 
+        });
+    }
+
+    // 4. Submissão e gravação do relatório no banco de dados
+    if (btnSalvarChamada) {
+        btnSalvarChamada.addEventListener('click', async () => {
+            const data = document.getElementById('data-chamada').value;
+            const turma = document.getElementById('turma-chamada').value;
+            const prof = document.getElementById('prof-chamada').value.trim();
+            const disc = document.getElementById('disc-chamada').value.trim();
+
+            if (!data || turma === "Selecione a Turma..." || !prof || !disc) {
+                alert("Dados incompletos: É obrigatório o preenchimento dos campos Data, Turma, Professor e Disciplina.");
+                return;
+            }
+
+            if (listaChamada.length === 0) {
+                alert("Operação cancelada: A lista de frequência não possui registros.");
+                return;
+            }
+
+            // Processamento iterativo para determinação do status de frequência
+            let registrosDePresenca = [];
+            
+            listaChamada.forEach((aluno, index) => {
+                const radios = document.getElementsByName(`presenca_${index}`);
+                let statusFinal = "presente"; 
+                for (let radio of radios) {
+                    if (radio.checked) { statusFinal = radio.value; break; }
+                }
+                
+                registrosDePresenca.push({
+                    id_aluno: aluno.idFirebase,
+                    nome: aluno.nome,
+                    matricula: aluno.matricula,
+                    visitante: aluno.visitante,
+                    status: statusFinal 
+                });
+            });
+
+            // Atualização de estado visual da submissão
+            btnSalvarChamada.innerText = "PROCESSANDO TRANSAÇÃO...";
+            btnSalvarChamada.disabled = true;
+
+            try {
+                // Inserção do novo documento na coleção de 'chamadas'
+                await addDoc(collection(db, "chamadas"), {
+                    data: data,
+                    turma: turma,
+                    professor: prof,
+                    disciplina: disc,
+                    alunos: registrosDePresenca,
+                    data_registro: new Date()
+                });
+
+                alert("Operação concluída: Frequência registrada com sucesso no sistema.");
+                
+                // Restauração da interface pós-submissão
+                document.getElementById('prof-chamada').value = '';
+                document.getElementById('disc-chamada').value = '';
+                document.getElementById('nome-visitante').value = '';
+                listaChamada = [];
+                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted">Selecione uma turma acima e clique no botão para carregar a lista de alunos.</td></tr>';
+
+            } catch (error) {
+                console.error("Erro na gravação da chamada:", error);
+                alert("Falha de persistência de dados: " + error.message);
+            } finally {
+                btnSalvarChamada.innerText = "SALVAR CHAMADA NO BANCO";
+                btnSalvarChamada.disabled = false;
+            }
+        });
+    }
 }
