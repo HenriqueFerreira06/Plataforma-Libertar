@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Aluno - Plataforma Libertar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="dashboard-body no-scroll"> 
+    <div class="wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-logo-area">
+                <img src="../assets/img/libertar-logo.jpg" alt="Logo Libertar">
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="../dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
+                <li class="dropdown-hover">
+                    <a href="javascript:void(0)" class="active"><i class="bi bi-people-fill"></i> Alunos</a>
+                    <ul class="submenu" style="max-height: 250px;">
+                        <li><a href="novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+                        <li><a href="consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+                        <li><a href="transferenciaAluno.html"><i class="bi bi-arrow-left-right"></i> Transferência de Polo</a></li>
+                    </ul>
+                </li>
+                <li><a href="../presenca.html"><i class="bi bi-calendar-check-fill"></i> Presença</a></li>
+                <li class="mt-auto"><a href="../index.html" class="logout-link"><i class="bi bi-box-arrow-left"></i> Sair</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="user-greeting mb-0">PERFIL DO ALUNO</h1>
+                <a href="consultaAluno.html" class="btn btn-cancelar"><i class="bi bi-arrow-left"></i> Voltar</a>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="dash-card">
+                        <h5 class="mb-4" style="color: var(--side-logo-bg); font-weight: bold; text-transform: uppercase;">Dados Cadastrais</h5>
+                        
+                        <form id="form-editar-aluno" class="custom-form">
+                            <input type="hidden" id="edit-id"> <div class="row g-3 mb-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Nome Completo</label>
+                                    <input type="text" id="edit-nome" class="form-control dash-input" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">E-mail (CONTATO)</label>
+                                    <input type="email" id="edit-email" class="form-control dash-input" required>
+                               </div>
+                               <div class="col-md-6">
+                                    <label class="form-label">CPF</label>
+                                    <input type="text" id="edit-cpf" class="form-control dash-input" maxlength="14" placeholder="000.000.000-00" required>
+                               </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Polo</label>
+                                    <select id="edit-polo" class="form-select dash-input" required>
+                                        <option value="Polo Central">Polo Central</option>
+                                        <option value="Polo Norte">Polo Norte</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Turma</label>
+                                    <select id="edit-turma" class="form-select dash-input" required>
+                                        <option value="Turma A - Manhã">Turma A - Manhã</option>
+                                        <option value="Turma B - Tarde">Turma B - Tarde</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Status da Matrícula</label>
+                                    <select id="edit-status" class="form-select dash-input fw-bold" required>
+                                        <option value="ativo" class="text-success">ATIVO</option>
+                                        <option value="inativo" class="text-danger">INATIVO</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-5">
+                                <button type="button" id="btn-excluir-aluno" class="btn btn-danger px-4" style="border-radius: 0; font-weight: bold;"><i class="bi bi-trash3-fill"></i> Excluir Registro</button>
+                                <button type="submit" id="btn-salvar-edicao" class="btn btn-salvar px-5">SALVAR ALTERAÇÕES</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="dash-card d-flex flex-column justify-content-center align-items-center text-center">
+                        <h5 class="mb-4" style="color: var(--side-logo-bg); font-weight: bold; text-transform: uppercase;">Frequência Geral</h5>
+                        
+                        <div style="width: 150px; height: 150px; border-radius: 50%; border: 10px solid var(--ativo-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <h2 id="display-porcentagem" style="color: var(--text-main); font-weight: bold; margin: 0; font-size: 2.5rem;">--%</h2>
+                        </div>
+                        
+                        <div class="w-100 mt-3 text-start px-3">
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-muted">Aulas Ministradas:</span> 
+                                <span id="display-total-aulas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-success fw-bold">Presenças (P):</span> 
+                                <span id="display-presencas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-0 d-flex justify-content-between">
+                                <span class="text-danger fw-bold">Faltas (F):</span> 
+                                <span id="display-faltas" class="fw-bold fs-5">0</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../assets/js/main.js"></script>
+</body>
+</html>

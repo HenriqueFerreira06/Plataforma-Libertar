@@ -1,16 +1,16 @@
 // 1. Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // 2. Configurações de autenticação do projeto Libertar
 const firebaseConfig = {
-  apiKey: "AIzaSyBlZj_j8WZC4fALp9aPhzNyaXZaqrsoVqs",
-  authDomain: "libertarbd.firebaseapp.com",
-  projectId: "libertarbd",
-  storageBucket: "libertarbd.firebasestorage.app",
-  messagingSenderId: "989803267776",
-  appId: "1:989803267776:web:4227525600b40d38d70f25"
+    apiKey: "AIzaSyBlZj_j8WZC4fALp9aPhzNyaXZaqrsoVqs",
+    authDomain: "libertarbd.firebaseapp.com",
+    projectId: "libertarbd",
+    storageBucket: "libertarbd.firebasestorage.app",
+    messagingSenderId: "989803267776",
+    appId: "1:989803267776:web:4227525600b40d38d70f25"
 };
 
 // 3. Inicialização do Firebase Principal (Autenticação e Banco de Dados)
@@ -48,7 +48,6 @@ if (formLogin) {
                 }
             });
     });
-
 
     const btnEnviarRecuperacao = document.getElementById('btn-enviar-recuperacao');
 
@@ -102,6 +101,44 @@ if (formLogin) {
 const formNovoAluno = document.getElementById('form-novo-aluno');
 
 if (formNovoAluno) {
+    const inputCpfCadastro = document.getElementById('cpf');
+
+    // Função interna isolada de Máscara de CPF
+    const aplicarMascaraCPF = (event) => {
+        let value = event.target.value.replace(/\D/g, ""); 
+        if (value.length > 11) value = value.slice(0, 11); 
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        event.target.value = value;
+    };
+
+    // Função interna isolada de Validação Matemática
+    const validarCPF = (cpf) => {
+        cpf = cpf.replace(/\D/g, ''); 
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
+        
+        let soma = 0, resto;
+        for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(9, 10))) return false;
+        
+        soma = 0;
+        for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(10, 11))) return false;
+        
+        return true;
+    };
+
+    // Aplicação do ouvinte de eventos ao campo
+    if (inputCpfCadastro) {
+        inputCpfCadastro.setAttribute('maxlength', '14');
+        inputCpfCadastro.addEventListener('input', aplicarMascaraCPF);
+    }
+
     formNovoAluno.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -112,13 +149,15 @@ if (formNovoAluno) {
         const polo = document.getElementById('polo').value;
         const turma = document.getElementById('turma').value;
         
-        // Remoção de caracteres especiais do CPF para utilização como senha inicial
-        const senhaInicial = cpf.replace(/\D/g, ""); 
-
-        if(senhaInicial.length < 6) {
-            alert("Erro de validação: O CPF deve estar completo para a geração da credencial de acesso.");
+        // Validação estrita do CPF antes do processamento
+        if (!validarCPF(cpf)) {
+            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            document.getElementById('cpf').focus();
             return;
         }
+
+        // Remoção de caracteres especiais do CPF para utilização como senha inicial
+        const senhaInicial = cpf.replace(/\D/g, ""); 
 
         // Criação de credencial na instância secundária do Firebase Auth
         createUserWithEmailAndPassword(authCadastro, email, senhaInicial)
@@ -211,7 +250,7 @@ if (tabelaAlunos) {
                         </span>
                     </td>
                     <td>
-                        <button class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></button>
+                        <a href="editarAluno.html?id=${aluno.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             `;
@@ -437,6 +476,206 @@ if (btnCarregarTurma) {
             } finally {
                 btnSalvarChamada.innerText = "SALVAR CHAMADA NO BANCO";
                 btnSalvarChamada.disabled = false;
+            }
+        });
+    }
+}
+
+// ==========================================
+// MÓDULO 5: PERFIL E EDIÇÃO DE ALUNO (editarAluno.html)
+// ==========================================
+const formEditarAluno = document.getElementById('form-editar-aluno');
+
+if (formEditarAluno) {
+    // 1. Extração do Parâmetro ID da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const alunoId = urlParams.get('id');
+
+    // Funções internas isoladas (Cópia exata para o escopo de Edição)
+    const aplicarMascaraCPF = (event) => {
+        let value = event.target.value.replace(/\D/g, ""); 
+        if (value.length > 11) value = value.slice(0, 11); 
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        event.target.value = value;
+    };
+
+    const validarCPF = (cpf) => {
+        cpf = cpf.replace(/\D/g, ''); 
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
+        
+        let soma = 0, resto;
+        for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(9, 10))) return false;
+        
+        soma = 0;
+        for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(10, 11))) return false;
+        
+        return true;
+    };
+
+    const inputCpfEdit = document.getElementById('edit-cpf');
+    if (inputCpfEdit) {
+        inputCpfEdit.setAttribute('maxlength', '14');
+        inputCpfEdit.addEventListener('input', aplicarMascaraCPF);
+    }
+
+    if (!alunoId) {
+        alert("Erro de roteamento: Identificador do aluno não encontrado.");
+        window.location.href = "consultaAluno.html"; 
+    } else {
+        carregarDadosDoAluno(alunoId);
+    }
+
+    // 2. Método de Consulta e Preenchimento Inicial
+    async function carregarDadosDoAluno(id) {
+        try {
+            // A. Busca os dados cadastrais
+            const docRef = doc(db, "alunos", id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const aluno = docSnap.data();
+                
+                // Preenchimento do Formulário
+                document.getElementById('edit-id').value = id;
+                document.getElementById('edit-nome').value = aluno.nome_completo;
+                document.getElementById('edit-email').value = aluno.email;
+                document.getElementById('edit-cpf').value = aluno.cpf;
+                document.getElementById('edit-polo').value = aluno.polo;
+                document.getElementById('edit-turma').value = aluno.turma;
+                document.getElementById('edit-status').value = aluno.status;
+
+                // B. Executa o Cálculo de Frequência
+                calcularFrequenciaDoAluno(id, aluno.turma);
+
+            } else {
+                alert("Erro: O registro do aluno não foi localizado na base de dados.");
+                window.location.href = "consultaAluno.html";
+            }
+        } catch (error) {
+            console.error("Falha na recuperação de dados:", error);
+            alert("Erro de comunicação com o servidor.");
+        }
+    }
+
+    // 3. Lógica Analítica: Cálculo de Presença
+    async function calcularFrequenciaDoAluno(idAluno, turmaAluno) {
+        try {
+            // Consulta todas as chamadas realizadas para a turma deste aluno
+            const q = query(collection(db, "chamadas"), where("turma", "==", turmaAluno));
+            const chamadasSnapshot = await getDocs(q);
+
+            let totalAulas = 0;
+            let presencas = 0;
+            let faltas = 0;
+
+            chamadasSnapshot.forEach((chamadaDoc) => {
+                const chamadaData = chamadaDoc.data();
+                totalAulas++; // Cada documento é uma aula ministrada
+
+                // Procura o aluno específico dentro da lista daquela chamada
+                const registroDoAluno = chamadaData.alunos.find(a => a.id_aluno === idAluno);
+                
+                if (registroDoAluno) {
+                    if (registroDoAluno.status === "presente") {
+                        presencas++;
+                    } else if (registroDoAluno.status === "falta") {
+                        faltas++;
+                    }
+                }
+            });
+
+            // Processamento da Porcentagem
+            let porcentagem = 0;
+            if (totalAulas > 0) {
+                porcentagem = Math.round((presencas / totalAulas) * 100);
+            }
+
+            // Renderização na Interface
+            document.getElementById('display-total-aulas').innerText = totalAulas;
+            document.getElementById('display-presencas').innerText = presencas;
+            document.getElementById('display-faltas').innerText = faltas;
+            document.getElementById('display-porcentagem').innerText = `${porcentagem}%`;
+
+            // Alteração visual da cor do gráfico com base no risco de evasão
+            const circle = document.getElementById('display-porcentagem').parentElement;
+            if (porcentagem >= 75) {
+                circle.style.borderColor = "var(--ativo-bg)"; // Azul/Verde (Seguro)
+            } else if (porcentagem >= 50) {
+                circle.style.borderColor = "#f8c300"; // Amarelo (Atenção)
+            } else {
+                circle.style.borderColor = "var(--inativo-bg)"; // Vermelho (Crítico)
+            }
+
+        } catch (error) {
+            console.error("Erro no processamento de frequência:", error);
+        }
+    }
+
+    // 4. Submissão da Atualização Cadastral
+    formEditarAluno.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const cpfDigitado = document.getElementById('edit-cpf').value;
+
+        // Executa a validação antes de prosseguir
+        if (!validarCPF(cpfDigitado)) {
+            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            document.getElementById('edit-cpf').focus();
+            return;
+        }
+
+        const btnSalvar = document.getElementById('btn-salvar-edicao');
+        btnSalvar.innerText = "ATUALIZANDO...";
+        btnSalvar.disabled = true;
+
+        try {
+            const alunoRef = doc(db, "alunos", alunoId);
+            
+            // Atualiza os campos do banco de dados (incluindo o novo e-mail editado)
+            await updateDoc(alunoRef, {
+                nome_completo: document.getElementById('edit-nome').value,
+                email: document.getElementById('edit-email').value,
+                cpf: cpfDigitado,
+                polo: document.getElementById('edit-polo').value,
+                turma: document.getElementById('edit-turma').value,
+                status: document.getElementById('edit-status').value
+            });
+
+            alert("Operação concluída: Registro do aluno atualizado com sucesso.");
+            window.location.href = "consultaAluno.html"; // Retorna para a tabela
+
+        } catch (error) {
+            console.error("Erro na atualização:", error);
+            alert("Falha ao gravar alterações: " + error.message);
+        } finally {
+            btnSalvar.innerText = "SALVAR ALTERAÇÕES";
+            btnSalvar.disabled = false;
+        }
+    });
+
+    // 5. Procedimento de Exclusão de Registro
+    const btnExcluir = document.getElementById('btn-excluir-aluno');
+    if (btnExcluir) {
+        btnExcluir.addEventListener('click', async () => {
+            const confirmacao = confirm("ATENÇÃO: Tem certeza que deseja excluir permanentemente este aluno do sistema? Esta ação não poderá ser desfeita.");
+            
+            if (confirmacao) {
+                try {
+                    await deleteDoc(doc(db, "alunos", alunoId));
+                    alert("Operação concluída: Registro excluído da base de dados.");
+                    window.location.href = "consultaAluno.html"; // Retorna para a tabela
+                } catch (error) {
+                    console.error("Erro na exclusão:", error);
+                    alert("Falha na exclusão do registro: " + error.message);
+                }
             }
         });
     }
