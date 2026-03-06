@@ -681,7 +681,7 @@ if (formEditarAluno) {
     }
 }
 // ==========================================
-// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html)
+// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html) E SAUDAÇÃO
 // ==========================================
 const greetingDisplay = document.getElementById('user-greeting-display');
 const displayAtivos = document.getElementById('dash-ativos');
@@ -689,23 +689,51 @@ const displayInativos = document.getElementById('dash-inativos');
 const displayAulas = document.getElementById('dash-aulas');
 const displayTotalAlunos = document.getElementById('dash-total-alunos');
 
-// Verifica se estamos na tela do Dashboard
 if (greetingDisplay || displayAtivos) {
     
-    // 1. SISTEMA DE SEGURANÇA E SAUDAÇÃO
-    onAuthStateChanged(auth, (user) => {
+    // 1. SISTEMA DE SEGURANÇA E SAUDAÇÃO INTELIGENTE
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // Se o usuário não tiver um "Nome" salvo, usamos o começo do e-mail dele
-            let nome = user.displayName;
-            if (!nome) {
-                nome = user.email.split('@')[0]; // Pega o que vem antes do @
-            }
             if (greetingDisplay) {
-                greetingDisplay.innerText = `OLÁ, ${nome.toUpperCase()}!`;
+                try {
+                    let nomeExibicao = "";
+                    
+                    // A. Tenta achar o usuário na lista de Funcionários
+                    const docFuncRef = doc(db, "funcionarios", user.uid);
+                    const docFuncSnap = await getDoc(docFuncRef);
+                    
+                    if (docFuncSnap.exists()) {
+                        nomeExibicao = docFuncSnap.data().nome_completo;
+                    } else {
+                        // B. Se não achar, tenta achar na lista de Alunos
+                        const docAlunoRef = doc(db, "alunos", user.uid);
+                        const docAlunoSnap = await getDoc(docAlunoRef);
+                        
+                        if (docAlunoSnap.exists()) {
+                            nomeExibicao = docAlunoSnap.data().nome_completo;
+                        }
+                    }
+                    
+                    // C. Se não achar em lugar nenhum (Ex: A conta Admin Mestra original), usa o email
+                    if (!nomeExibicao) {
+                        nomeExibicao = user.email.split('@')[0];
+                    }
+                    
+                    // Pega só o primeiro nome da pessoa para a saudação não ficar gigante
+                    const primeiroNome = nomeExibicao.split(' ')[0];
+                    greetingDisplay.innerText = `OLÁ, ${primeiroNome.toUpperCase()}!`;
+                    
+                } catch (error) {
+                    console.error("Erro ao buscar o nome real no banco:", error);
+                    const fallbackNome = user.email.split('@')[0];
+                    greetingDisplay.innerText = `OLÁ, ${fallbackNome.toUpperCase()}!`;
+                }
             }
         } else {
-            // Se tentar abrir o dashboard sem fazer login, é expulso para a tela inicial
-            window.location.href = "index.html";
+            // Se tentar abrir a página sem login, expulsa pra tela inicial
+            if(window.location.pathname.includes('dashboard.html')) {
+                window.location.href = "index.html";
+            }
         }
     });
 
@@ -716,7 +744,7 @@ if (greetingDisplay || displayAtivos) {
             const alunosSnapshot = await getDocs(collection(db, "alunos"));
             let totalAtivos = 0;
             let totalInativos = 0;
-            let totalGeral = alunosSnapshot.size; // Tamanho total da lista
+            let totalGeral = alunosSnapshot.size;
 
             alunosSnapshot.forEach((doc) => {
                 const aluno = doc.data();
@@ -877,3 +905,105 @@ if (formNovoUsuario) {
             });
     });
 }
+
+// ==========================================
+// MÓDULO 8: CONSULTA DE USUÁRIOS (consultaUsuario.html)
+// ==========================================
+const tabelaUsuarios = document.getElementById('tabela-usuarios');
+
+if (tabelaUsuarios) {
+    const inputBuscaUsuario = document.getElementById('busca-nome-usuario');
+    const selectCargoUsuario = document.getElementById('filtro-cargo-usuario');
+    const selectPoloUsuario = document.getElementById('filtro-polo-usuario');
+    const selectStatusUsuario = document.getElementById('filtro-status-usuario');
+
+    let listaDeUsuarios = []; 
+
+    // 1. Executa a requisição ao banco de dados na inicialização
+    async function buscarUsuariosNoBanco() {
+        tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4">Estabelecendo conexão com o servidor...</td></tr>';
+        try {
+            const querySnapshot = await getDocs(collection(db, "funcionarios"));
+            listaDeUsuarios = []; 
+            
+            querySnapshot.forEach((doc) => {
+                const usuario = doc.data();
+                usuario.idFirebase = doc.id; 
+                listaDeUsuarios.push(usuario); 
+            });
+
+            desenharTabelaUsuarios(listaDeUsuarios);
+
+        } catch (error) {
+            console.error("Falha na recuperação de dados:", error);
+            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Falha de comunicação com o banco de dados.</td></tr>';
+        }
+    }
+
+    // 2. Método de construção da tabela HTML
+    function desenharTabelaUsuarios(usuariosParaMostrar) {
+        tabelaUsuarios.innerHTML = ''; 
+        
+        if(usuariosParaMostrar.length === 0) {
+            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro correspondente aos critérios informados.</td></tr>';
+            return;
+        }
+
+        usuariosParaMostrar.forEach((usuario) => {
+            const row = `
+                <tr>
+                    <td class="fw-bold text-secondary">${usuario.nome_completo}</td>
+                    <td>${usuario.email}</td>
+                    <td>${usuario.nivel_acesso}</td>
+                    <td>${usuario.polo}</td>
+                    <td>
+                        <span class="badge ${usuario.status === 'ativo' ? 'bg-success' : 'bg-danger'}">
+                            ${usuario.status ? usuario.status.toUpperCase() : 'ATIVO'}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="editarUsuario.html?id=${usuario.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
+                    </td>
+                </tr>
+            `;
+            tabelaUsuarios.innerHTML += row;
+        });
+    }
+
+    // 3. Processamento dos filtros locais
+    function aplicarFiltrosUsuarios() {
+        let filtrados = listaDeUsuarios;
+
+        if (inputBuscaUsuario && inputBuscaUsuario.value.trim() !== '') {
+            const termo = inputBuscaUsuario.value.toLowerCase();
+            filtrados = filtrados.filter(u => 
+                u.nome_completo.toLowerCase().includes(termo) || 
+                (u.cpf && u.cpf.includes(termo))
+            );
+        }
+
+        if (selectCargoUsuario && selectCargoUsuario.value !== "todos") {
+            filtrados = filtrados.filter(u => u.nivel_acesso === selectCargoUsuario.value);
+        }
+
+        if (selectPoloUsuario && selectPoloUsuario.value !== "todos") {
+            filtrados = filtrados.filter(u => u.polo === selectPoloUsuario.value);
+        }
+
+        if (selectStatusUsuario && selectStatusUsuario.value !== "todos") {
+            filtrados = filtrados.filter(u => u.status === selectStatusUsuario.value);
+        }
+
+        desenharTabelaUsuarios(filtrados);
+    }
+
+    // Vinculação de eventos aos campos de pesquisa
+    if(inputBuscaUsuario) inputBuscaUsuario.addEventListener('input', aplicarFiltrosUsuarios);
+    if(selectCargoUsuario) selectCargoUsuario.addEventListener('change', aplicarFiltrosUsuarios);
+    if(selectPoloUsuario) selectPoloUsuario.addEventListener('change', aplicarFiltrosUsuarios);
+    if(selectStatusUsuario) selectStatusUsuario.addEventListener('change', aplicarFiltrosUsuarios);
+
+    // Inicializa a recuperação de dados
+    buscarUsuariosNoBanco();
+}
+
