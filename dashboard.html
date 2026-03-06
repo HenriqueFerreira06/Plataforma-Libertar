@@ -41,7 +41,7 @@
                         <li><a href="Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
                         <li><a href="Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
                         <li><a href="Administração/consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
-                        <li><a href="../Administração/consultaPolo.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-building"></i> Consultar Polos</a></li>
+                        <li><a href="Administração/consultaPolo.html"><i class="bi bi-building"></i> Consultar Polos</a></li>
                     </ul>
                 </li>
                 
@@ -53,15 +53,13 @@
             
             <h1 class="user-greeting" id="user-greeting-display">OLÁ, CARREGANDO...</h1>
 
-            <div class="row g-4">
+            <div class="row g-4" id="admin-dashboard-cards" style="display: none;">
                 
                 <div class="col-md-6">
                     <div class="dash-card d-flex flex-column">
-                        
                         <div class="dados-header">
                             <h5>Total de registros</h5>
                         </div>
-                        
                         <div class="d-flex justify-content-around align-items-center flex-grow-1 w-100">
                             <div class="status-group">
                                 <div class="square-icon box-ativo">
@@ -72,7 +70,6 @@
                                     <span class="number" id="dash-ativos">--</span>
                                 </div>
                             </div>
-
                             <div class="status-group">
                                 <div class="square-icon box-inativo">
                                     <i class="bi bi-person-dash-fill"></i>
@@ -83,13 +80,11 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </div>
 
                 <div class="col-md-6">
                     <div class="dash-card d-flex flex-column">
-                        
                         <div class="dados-header d-flex justify-content-between align-items-start">
                             <div class="d-flex align-items-baseline">
                                 <h5>DADOS</h5>
@@ -97,9 +92,7 @@
                             </div>
                             <span class="instrucao">clique na seta para visualizar</span>
                         </div>
-
                         <div class="row flex-grow-1 align-items-center">
-                            
                             <div class="col-6 d-flex flex-column align-items-center">
                                 <span class="data-large-number" id="dash-aulas">--</span>
                                 <a href="presenca.html" class="dash-text-link mt-2">
@@ -107,7 +100,6 @@
                                     <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
                                 </a>
                             </div>
-
                             <div class="col-6 d-flex flex-column align-items-center">
                                 <span class="data-large-number" id="dash-total-alunos">--</span>
                                 <a href="Alunos/consultaAluno.html" class="dash-text-link mt-2">
@@ -115,12 +107,37 @@
                                     <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
                                 </a>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
 
+            </div>
+
+            <div class="row g-4" id="aluno-dashboard-cards" style="display: none;">
+                <div class="col-md-6 offset-md-3">
+                    <div class="dash-card d-flex flex-column justify-content-center align-items-center text-center">
+                        <h5 class="mb-4" style="color: var(--side-logo-bg); font-weight: bold; text-transform: uppercase;">Minha Frequência</h5>
+                        
+                        <div style="width: 150px; height: 150px; border-radius: 50%; border: 10px solid var(--ativo-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <h2 id="dash-aluno-porcentagem" style="color: var(--text-main); font-weight: bold; margin: 0; font-size: 2.5rem;">--%</h2>
+                        </div>
+                        
+                        <div class="w-100 mt-3 text-start px-3">
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-muted">Aulas Ministradas (Minha Turma):</span> 
+                                <span id="dash-aluno-total-aulas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-success fw-bold">Presenças (P):</span> 
+                                <span id="dash-aluno-presencas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-0 d-flex justify-content-between">
+                                <span class="text-danger fw-bold">Faltas (F):</span> 
+                                <span id="dash-aluno-faltas" class="fw-bold fs-5">0</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
         </main>

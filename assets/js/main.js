@@ -689,13 +689,19 @@ if (formEditarAluno) {
 }
 
 // ==========================================
-// MÓDULO 6: ROLE-BASED ACCESS CONTROL (RBAC) E DASHBOARD GLOBAL
+// MÓDULO 6: ROLE-BASED ACCESS CONTROL E DASHBOARD GLOBAL/ALUNO
 // ==========================================
 const greetingDisplay = document.getElementById('user-greeting-display');
+
+// Elementos da View Admin
+const adminDashboardCards = document.getElementById('admin-dashboard-cards');
 const displayAtivos = document.getElementById('dash-ativos');
 const displayInativos = document.getElementById('dash-inativos');
 const displayAulas = document.getElementById('dash-aulas');
 const displayTotalAlunos = document.getElementById('dash-total-alunos');
+
+// Elementos da View Aluno
+const alunoDashboardCards = document.getElementById('aluno-dashboard-cards');
 
 // Escuta reativa do Auth State para definição de acessos (Middleware local)
 onAuthStateChanged(auth, async (user) => {
@@ -703,6 +709,7 @@ onAuthStateChanged(auth, async (user) => {
         try {
             let nomeExibicao = "";
             let cargoUsuario = "Aluno"; // Role de fallback (Mínimo Privilégio)
+            let turmaAlunoLogado = ""; 
             
             // Leitura na coleção de staff (Administradores/Professores)
             const docFuncRef = doc(db, "funcionarios", user.uid);
@@ -718,8 +725,10 @@ onAuthStateChanged(auth, async (user) => {
                 const docAlunoSnap = await getDoc(docAlunoRef);
                 
                 if (docAlunoSnap.exists()) {
-                    nomeExibicao = docAlunoSnap.data().nome_completo;
+                    const dadosAluno = docAlunoSnap.data();
+                    nomeExibicao = dadosAluno.nome_completo;
                     cargoUsuario = "Aluno"; 
+                    turmaAlunoLogado = dadosAluno.turma; // Guarda a turma para o cálculo
                 }
             }
             
@@ -729,10 +738,10 @@ onAuthStateChanged(auth, async (user) => {
                 cargoUsuario = "Administrador"; 
             }
             
-            // Aplicação da matriz de acesso (RBAC) na camada de visualização e rotas
             const pathAtual = window.location.pathname.toLowerCase();
+            const isDashboardPage = pathAtual.includes('dashboard.html') || pathAtual === '/' || pathAtual === '';
 
-            // Lógica de bloqueio: Perfil Aluno
+            // Lógica de bloqueio e Views: Perfil Aluno
             if (cargoUsuario === "Aluno") {
                 document.querySelectorAll('.admin-only, .prof-admin-only, .prof-only').forEach(el => el.style.display = 'none');
                 
@@ -740,8 +749,15 @@ onAuthStateChanged(auth, async (user) => {
                     alert("403 Forbidden: Privilégios insuficientes de visualização.");
                     window.location.href = "/dashboard.html"; 
                 }
+
+                // Habilita a View do Aluno no Dashboard
+                if (isDashboardPage) {
+                    if (adminDashboardCards) adminDashboardCards.style.display = 'none';
+                    if (alunoDashboardCards) alunoDashboardCards.style.display = 'flex';
+                    carregarEstatisticasAluno(user.uid, turmaAlunoLogado);
+                }
             } 
-            // Lógica de bloqueio: Perfil Docente
+            // Lógica de bloqueio e Views: Perfil Docente
             else if (cargoUsuario === "Professor") {
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
                 
@@ -749,8 +765,15 @@ onAuthStateChanged(auth, async (user) => {
                     alert("403 Forbidden: Acesso administrativo exigido.");
                     window.location.href = "/dashboard.html"; 
                 }
+
+                // Habilita a View Global no Dashboard
+                if (isDashboardPage) {
+                    if (alunoDashboardCards) alunoDashboardCards.style.display = 'none';
+                    if (adminDashboardCards) adminDashboardCards.style.display = 'flex';
+                    if (displayAtivos) carregarEstatisticasDashboard();
+                }
             }
-            // Lógica de bloqueio: Perfil Administrador
+            // Lógica de bloqueio e Views: Perfil Administrador
             else if (cargoUsuario === "Administrador") {
                 document.querySelectorAll('.prof-only').forEach(el => el.style.display = 'none');
                 
@@ -758,17 +781,19 @@ onAuthStateChanged(auth, async (user) => {
                     alert("Restrição Estrutural: Interface dedicada a docentes.");
                     window.location.href = "/dashboard.html"; 
                 }
+
+                // Habilita a View Global no Dashboard
+                if (isDashboardPage) {
+                    if (alunoDashboardCards) alunoDashboardCards.style.display = 'none';
+                    if (adminDashboardCards) adminDashboardCards.style.display = 'flex';
+                    if (displayAtivos) carregarEstatisticasDashboard();
+                }
             }
 
             // Bind do Header
             if (greetingDisplay) {
                 const primeiroNome = nomeExibicao.split(' ')[0];
                 greetingDisplay.innerText = `OLÁ, ${primeiroNome.toUpperCase()}!`;
-            }
-
-            // Executa carga das dependências estatísticas se o nó raiz existir
-            if (displayAtivos) {
-                carregarEstatisticasDashboard();
             }
             
         } catch (error) {
@@ -782,10 +807,9 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Consumo de documentos para geração das views quantitativas do painel
+// Consumo de documentos para geração das views quantitativas da Administração
 async function carregarEstatisticasDashboard() {
     try {
-        // Obtenção da demografia de alunos
         const alunosSnapshot = await getDocs(collection(db, "alunos"));
         let totalAtivos = 0;
         let totalInativos = 0;
@@ -797,11 +821,9 @@ async function carregarEstatisticasDashboard() {
             else if (aluno.status === "inativo") totalInativos++;
         });
 
-        // Contabilização de volumes na coleção de chamadas
         const chamadasSnapshot = await getDocs(collection(db, "chamadas"));
         const totalAulas = chamadasSnapshot.size; 
 
-        // Injeção de valores na árvore DOM
         if(displayAtivos) displayAtivos.innerText = totalAtivos;
         if(displayInativos) displayInativos.innerText = totalInativos;
         if(displayTotalAlunos) displayTotalAlunos.innerText = totalGeral;
@@ -809,10 +831,60 @@ async function carregarEstatisticasDashboard() {
 
     } catch (error) {
         console.error("Falha de computação nas métricas globais:", error);
-        if(displayAtivos) displayAtivos.innerText = "!";
-        if(displayInativos) displayInativos.innerText = "!";
-        if(displayTotalAlunos) displayTotalAlunos.innerText = "!";
-        if(displayAulas) displayAulas.innerText = "!";
+    }
+}
+
+// Engine analítica isolada para o Dashboard Pessoal do Aluno
+async function carregarEstatisticasAluno(idAluno, turmaAluno) {
+    try {
+        // Varredura da coleção 'chamadas' pertinente à turma do aluno logado
+        const q = query(collection(db, "chamadas"), where("turma", "==", turmaAluno));
+        const chamadasSnapshot = await getDocs(q);
+
+        let totalAulas = 0;
+        let presencas = 0;
+        let faltas = 0;
+
+        chamadasSnapshot.forEach((chamadaDoc) => {
+            const chamadaData = chamadaDoc.data();
+            totalAulas++; 
+
+            // Extração do sub-documento correspondente ao aluno
+            const registroDoAluno = chamadaData.alunos.find(a => a.id_aluno === idAluno);
+            
+            if (registroDoAluno) {
+                if (registroDoAluno.status === "presente") {
+                    presencas++;
+                } else if (registroDoAluno.status === "falta") {
+                    faltas++;
+                }
+            }
+        });
+
+        // Derivação estatística
+        let porcentagem = 0;
+        if (totalAulas > 0) {
+            porcentagem = Math.round((presencas / totalAulas) * 100);
+        }
+
+        // Renderização na Interface Pessoal
+        document.getElementById('dash-aluno-total-aulas').innerText = totalAulas;
+        document.getElementById('dash-aluno-presencas').innerText = presencas;
+        document.getElementById('dash-aluno-faltas').innerText = faltas;
+        document.getElementById('dash-aluno-porcentagem').innerText = `${porcentagem}%`;
+
+        // Lógica visual baseada em métrica de risco de evasão
+        const circle = document.getElementById('dash-aluno-porcentagem').parentElement;
+        if (porcentagem >= 75) {
+            circle.style.borderColor = "var(--ativo-bg)"; 
+        } else if (porcentagem >= 50) {
+            circle.style.borderColor = "#f8c300"; 
+        } else {
+            circle.style.borderColor = "var(--inativo-bg)"; 
+        }
+
+    } catch (error) {
+        console.error("Falha no serviço de análise de frequência pessoal:", error);
     }
 }
 
