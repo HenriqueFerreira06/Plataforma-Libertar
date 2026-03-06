@@ -747,3 +747,133 @@ if (greetingDisplay || displayAtivos) {
         carregarEstatisticasDashboard();
     }
 }
+
+// ==========================================
+// MÓDULO 7: CADASTRO DE FUNCIONÁRIOS (cadastroUsuario.html)
+// ==========================================
+const formNovoUsuario = document.getElementById('form-novo-usuario');
+
+if (formNovoUsuario) {
+    const inputCpfUsuario = document.getElementById('cpf-usuario');
+    const inputCelularUsuario = document.getElementById('celular-usuario');
+
+    // Funções internas isoladas de formatação e validação
+    const aplicarMascaraCPF = (event) => {
+        let value = event.target.value.replace(/\D/g, ""); 
+        if (value.length > 11) value = value.slice(0, 11); 
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        event.target.value = value;
+    };
+
+    const aplicarMascaraCelular = (event) => {
+        let v = event.target.value.replace(/\D/g, ""); 
+        v = v.substring(0, 11); 
+        if (v.length > 10) {
+            v = v.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+        } else if (v.length > 6) {
+            v = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+        } else if (v.length > 2) {
+            v = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+        }
+        event.target.value = v;
+    };
+
+    const validarCPF = (cpf) => {
+        cpf = cpf.replace(/\D/g, ''); 
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
+        
+        let soma = 0, resto;
+        for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(9, 10))) return false;
+        
+        soma = 0;
+        for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(10, 11))) return false;
+        
+        return true;
+    };
+
+    // Aplicação dos ouvintes (Listeners)
+    if (inputCpfUsuario) {
+        inputCpfUsuario.setAttribute('maxlength', '14');
+        inputCpfUsuario.addEventListener('input', aplicarMascaraCPF);
+    }
+
+    if (inputCelularUsuario) {
+        inputCelularUsuario.setAttribute('maxlength', '15');
+        inputCelularUsuario.addEventListener('input', aplicarMascaraCelular);
+    }
+
+    // Processamento do Formulário
+    formNovoUsuario.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const nome = document.getElementById('nome-usuario').value;
+        const email = document.getElementById('email-usuario').value;
+        const cpf = document.getElementById('cpf-usuario').value;
+        const cargo = document.getElementById('cargo-usuario').value;
+        const celular = document.getElementById('celular-usuario').value;
+        const acesso = document.getElementById('acesso-usuario').value;
+        const polo = document.getElementById('polo-usuario').value;
+        const senha = document.getElementById('senha-usuario').value;
+
+        // Validação de Integridade
+        if (!validarCPF(cpf)) {
+            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            document.getElementById('cpf-usuario').focus();
+            return;
+        }
+
+        if (acesso === "Selecione a permissão..." || polo === "Selecione o polo...") {
+            alert("Dados incompletos: Selecione o Nível de Acesso e o Polo Vinculado.");
+            return;
+        }
+
+        // Feedback visual de carregamento
+        const btnSalvar = document.getElementById('btn-salvar-usuario');
+        btnSalvar.innerText = "PROCESSANDO...";
+        btnSalvar.disabled = true;
+
+        // Criação na base de dados
+        createUserWithEmailAndPassword(authCadastro, email, senha)
+            .then((userCredential) => {
+                const userFuncionario = userCredential.user;
+                
+                // Salva na coleção exclusiva de funcionários
+                return setDoc(doc(db, "funcionarios", userFuncionario.uid), {
+                    nome_completo: nome,
+                    email: email,
+                    cpf: cpf,
+                    cargo: cargo,
+                    celular: celular,
+                    nivel_acesso: acesso,
+                    polo: polo,
+                    status: "ativo",
+                    data_cadastro: new Date()
+                });
+            })
+            .then(() => {
+                alert("Cadastro realizado com sucesso. O funcionário já possui credenciais de acesso.");
+                formNovoUsuario.reset(); 
+            })
+            .catch((error) => {
+                if(error.code === 'auth/email-already-in-use') {
+                    alert("Aviso: O endereço de e-mail informado já possui cadastro ativo no sistema.");
+                } else if (error.code === 'auth/weak-password') {
+                    alert("Aviso de Segurança: A senha inicial deve conter pelo menos 6 caracteres.");
+                } else {
+                    alert("Falha no processo de cadastro: " + error.message);
+                }
+            })
+            .finally(() => {
+                btnSalvar.innerText = "Salvar Usuário";
+                btnSalvar.disabled = false;
+            });
+    });
+}
