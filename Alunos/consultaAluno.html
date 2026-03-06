@@ -58,11 +58,9 @@
                         <input type="text" id="busca-nome" class="form-control dash-input" placeholder="Buscar por Nome...">
                     </div>
                     <div class="col-md-3">
-                        <select id="filtro-polo" class="form-select dash-input">
-                            <option selected value="todos">Todos os Polos</option>
-                            <option value="Polo Central">Polo Central</option>
-                            <option value="Polo Norte">Polo Norte</option>
-                        </select>
+                        <select id="edit-polo" class="form-select dash-input dynamic-polo-select" required>
+                                        <option value="" selected disabled>Carregando polos...</option>
+                                    </select>
                     </div>
                     <div class="col-md-2">
                         <select id="filtro-turma" class="form-select dash-input">

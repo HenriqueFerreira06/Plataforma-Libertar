@@ -1,9 +1,11 @@
-// 1. Importações do Firebase
+// ==========================================
+// IMPORTAÇÕES E CONFIGURAÇÕES DE AMBIENTE (FIREBASE)
+// ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-// 2. Configurações de autenticação do projeto Libertar
+// Parâmetros de inicialização do projeto Libertar
 const firebaseConfig = {
     apiKey: "AIzaSyBlZj_j8WZC4fALp9aPhzNyaXZaqrsoVqs",
     authDomain: "libertarbd.firebaseapp.com",
@@ -13,32 +15,33 @@ const firebaseConfig = {
     appId: "1:989803267776:web:4227525600b40d38d70f25"
 };
 
-// 3. Inicialização do Firebase Principal (Autenticação e Banco de Dados)
+// Inicialização da instância principal (Autenticação de Sessão e Firestore)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// 4. Inicialização do projeto secundário (Permite cadastros sem alterar a sessão atual)
+// Inicialização de instância secundária para rotinas administrativas
+// Evita a sobrescrita do token de sessão atual ao criar novos usuários
 const appCadastro = initializeApp(firebaseConfig, "AppParaCadastros");
 const authCadastro = getAuth(appCadastro);
 
 // ==========================================
-// MÓDULO 1: AUTENTICAÇÃO E RECUPERAÇÃO DE SENHA (index.html)
+// MÓDULO 1: AUTENTICAÇÃO E RECUPERAÇÃO DE CREDENCIAIS (index.html)
 // ==========================================
 const formLogin = document.getElementById('form-login');
 
 if (formLogin) {
+    // Processamento do formulário de Login
     formLogin.addEventListener('submit', (e) => {
         e.preventDefault(); 
 
         const email = document.getElementById('email-login').value;
         const senha = document.getElementById('senha-login').value;
 
-        // Autenticação de usuário no Firebase
+        // Validação de credenciais via Firebase Auth
         signInWithEmailAndPassword(auth, email, senha)
             .then((userCredential) => {
-                // Redirecionamento para o painel de controle
-                window.location.href = "dashboard.html"; 
+                window.location.href = "dashboard.html"; // Redirecionamento em caso de sucesso
             })
             .catch((error) => {
                 if(error.code === 'auth/invalid-credential') {
@@ -49,45 +52,44 @@ if (formLogin) {
             });
     });
 
+    // Tratamento de requisição para redefinição de senha
     const btnEnviarRecuperacao = document.getElementById('btn-enviar-recuperacao');
 
     if (btnEnviarRecuperacao) {
         btnEnviarRecuperacao.addEventListener('click', () => {
-            // Obtém o endereço de e-mail informado no Modal
             const emailParaReset = document.getElementById('email-recuperacao').value;
 
             if (!emailParaReset) {
-                alert("Por favor, informe um endereço de e-mail válido.");
+                alert("Validação: É obrigatório informar um endereço de e-mail.");
                 return;
             }
 
-            // Atualização do estado do botão durante a requisição
+            // Bloqueio de UI durante transação de rede
             btnEnviarRecuperacao.innerText = "Processando...";
             btnEnviarRecuperacao.disabled = true;
 
             sendPasswordResetEmail(auth, emailParaReset)
                 .then(() => {
-                    alert("Instruções de redefinição de senha enviadas. Verifique sua caixa de entrada.");
+                    alert("Instruções de redefinição encaminhadas para o e-mail informado.");
                     
-                    // Oculta o Modal do Bootstrap após o envio
+                    // Encerramento do componente Modal (Bootstrap)
                     const modalElement = document.getElementById('modalEsqueciSenha');
                     const modalInstance = bootstrap.Modal.getInstance(modalElement);
                     modalInstance.hide();
                     
-                    // Limpeza do campo de entrada
                     document.getElementById('email-recuperacao').value = '';
                 })
                 .catch((error) => {
                     if (error.code === 'auth/invalid-email') {
-                        alert("Erro: O formato do e-mail informado é inválido.");
+                        alert("Erro: Formato de e-mail inválido.");
                     } else if (error.code === 'auth/user-not-found' || error.code === 'auth/missing-email') {
-                        alert("Erro: O e-mail informado não consta em nossos registros.");
+                        alert("Erro: O e-mail informado não consta na base de dados.");
                     } else {
-                        alert("Falha ao enviar solicitação: " + error.message);
+                        alert("Falha no processamento: " + error.message);
                     }
                 })
                 .finally(() => {
-                    // Restauração do estado inicial do botão
+                    // Liberação de UI pós-transação
                     btnEnviarRecuperacao.innerText = "Enviar Link";
                     btnEnviarRecuperacao.disabled = false;
                 });
@@ -96,14 +98,14 @@ if (formLogin) {
 }
 
 // ==========================================
-// MÓDULO 2: CADASTRO DE ALUNOS (novoAluno.html)
+// MÓDULO 2: CADASTRO DE ALUNOS E CRIAÇÃO DE IDENTIDADE (novoAluno.html)
 // ==========================================
 const formNovoAluno = document.getElementById('form-novo-aluno');
 
 if (formNovoAluno) {
     const inputCpfCadastro = document.getElementById('cpf');
 
-    // Função interna isolada de Máscara de CPF
+    // Utilitários de manipulação de string para CPF
     const aplicarMascaraCPF = (event) => {
         let value = event.target.value.replace(/\D/g, ""); 
         if (value.length > 11) value = value.slice(0, 11); 
@@ -113,7 +115,7 @@ if (formNovoAluno) {
         event.target.value = value;
     };
 
-    // Função interna isolada de Validação Matemática
+    // Algoritmo padrão de validação de CPF (Módulo 11)
     const validarCPF = (cpf) => {
         cpf = cpf.replace(/\D/g, ''); 
         if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
@@ -133,7 +135,7 @@ if (formNovoAluno) {
         return true;
     };
 
-    // Aplicação do ouvinte de eventos ao campo
+    // Binding de eventos para máscara em tempo real
     if (inputCpfCadastro) {
         inputCpfCadastro.setAttribute('maxlength', '14');
         inputCpfCadastro.addEventListener('input', aplicarMascaraCPF);
@@ -142,29 +144,28 @@ if (formNovoAluno) {
     formNovoAluno.addEventListener('submit', (e) => {
         e.preventDefault();
 
-        // Coleta de dados do formulário
         const nome = document.getElementById('nome').value;
         const email = document.getElementById('email').value;
         const cpf = document.getElementById('cpf').value;
         const polo = document.getElementById('polo').value;
         const turma = document.getElementById('turma').value;
         
-        // Validação estrita do CPF antes do processamento
+        // Bloqueio de submissão em caso de inconsistência de dados
         if (!validarCPF(cpf)) {
-            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            alert("Validação pendente: O CPF informado falhou na verificação algorítmica.");
             document.getElementById('cpf').focus();
             return;
         }
 
-        // Remoção de caracteres especiais do CPF para utilização como senha inicial
+        // Geração de senha padrão inicial (Apenas numerais do CPF)
         const senhaInicial = cpf.replace(/\D/g, ""); 
 
-        // Criação de credencial na instância secundária do Firebase Auth
+        // Criação de perfil de autenticação na instância isolada
         createUserWithEmailAndPassword(authCadastro, email, senhaInicial)
             .then((userCredential) => {
                 const userAluno = userCredential.user;
                 
-                // Inserção dos dados cadastrais na coleção do Firestore
+                // Persistência de metadados na coleção do Firestore
                 return setDoc(doc(db, "alunos", userAluno.uid), {
                     nome_completo: nome,
                     email: email,
@@ -173,41 +174,42 @@ if (formNovoAluno) {
                     turma: turma,
                     status: "ativo",
                     total_presencas: 0,
-                    total_faltas: 0
+                    total_faltas: 0,
+                    data_cadastro: new Date()
                 });
             })
             .then(() => {
-                alert("Cadastro realizado com sucesso. A senha inicial gerada corresponde aos números do CPF.");
-                formNovoAluno.reset(); // Restauração do formulário
+                alert("Cadastro concluído. A senha inicial foi definida como o CPF (somente números).");
+                formNovoAluno.reset(); 
             })
             .catch((error) => {
                 if(error.code === 'auth/email-already-in-use') {
-                    alert("Aviso: O endereço de e-mail informado já possui cadastro ativo no sistema.");
+                    alert("Aviso: Há um conflito de unicidade. Este e-mail já está registrado.");
                 } else {
-                    alert("Falha no processo de cadastro: " + error.message);
+                    alert("Exceção não tratada durante o cadastro: " + error.message);
                 }
             });
     });
 }
 
 // ==========================================
-// MÓDULO 3: CONSULTA DE ALUNOS (consultaAluno.html)
+// MÓDULO 3: LEITURA E FILTRAGEM DE ALUNOS (consultaAluno.html)
 // ==========================================
 const tabelaAlunos = document.getElementById('tabela-alunos');
 
-// Mapeamento dos elementos de filtro
+// Mapeamento de DOM Elements para a rotina de busca
 const inputBusca = document.getElementById('busca-nome');
 const selectPolo = document.getElementById('filtro-polo');
 const selectTurma = document.getElementById('filtro-turma');
 const selectStatus = document.getElementById('filtro-status'); 
 
-// Array local para armazenamento de dados e otimização de requisições
+// Cache local de documentos para mitigar chamadas redundantes à API
 let listaDeAlunos = []; 
 
 if (tabelaAlunos) {
-    // 1. Executa a requisição ao banco de dados na inicialização da página
+    // Busca primária e montagem do cache de leitura
     async function buscarAlunosNoBanco() {
-        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Estabelecendo conexão com o servidor...</td></tr>';
+        tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4">Sincronizando com o Firestore...</td></tr>';
         try {
             const querySnapshot = await getDocs(collection(db, "alunos"));
             listaDeAlunos = []; 
@@ -218,21 +220,20 @@ if (tabelaAlunos) {
                 listaDeAlunos.push(aluno); 
             });
 
-            // Renderização inicial dos dados consolidados
             desenharTabela(listaDeAlunos);
 
         } catch (error) {
-            console.error("Falha na recuperação de dados:", error);
-            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Falha de comunicação com o banco de dados.</td></tr>';
+            console.error("Falha na execução de leitura (GET):", error);
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Falha de conexão com a infraestrutura de dados.</td></tr>';
         }
     }
 
-    // 2. Método de construção da tabela HTML
+    // Engine de renderização de componentes de tabela
     function desenharTabela(alunosParaMostrar) {
         tabelaAlunos.innerHTML = ''; 
         
         if(alunosParaMostrar.length === 0) {
-            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro correspondente aos critérios informados.</td></tr>';
+            tabelaAlunos.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum documento satisfaz os parâmetros informados.</td></tr>';
             return;
         }
 
@@ -249,8 +250,8 @@ if (tabelaAlunos) {
                             ${aluno.status.toUpperCase()}
                         </span>
                     </td>
-                    <td>
-                        <a href="editarAluno.html?id=${aluno.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
+                    <td class="admin-only">
+                        <a href="editarAluno.html?id=${aluno.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Metadados"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             `;
@@ -258,11 +259,10 @@ if (tabelaAlunos) {
         });
     }
 
-    // 3. Processamento dos filtros locais
+    // Engine de filtragem multicritério baseada no array em memória
     function aplicarFiltros() {
         let alunosFiltrados = listaDeAlunos;
 
-        // Aplicação de filtro textual (Nome ou CPF)
         if (inputBusca && inputBusca.value.trim() !== '') {
             const termo = inputBusca.value.toLowerCase();
             alunosFiltrados = alunosFiltrados.filter(aluno => 
@@ -271,37 +271,32 @@ if (tabelaAlunos) {
             );
         }
 
-        // Aplicação de filtro categórico: Polo
-        if (selectPolo && selectPolo.value !== "todos") {
+        if (selectPolo && selectPolo.value !== "todos" && selectPolo.value !== "") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.polo === selectPolo.value);
         }
 
-        // Aplicação de filtro categórico: Turma
         if (selectTurma && selectTurma.value !== "todos") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.turma === selectTurma.value);
         }
 
-        // Aplicação de filtro categórico: Status
         if (selectStatus && selectStatus.value !== "todos") {
             alunosFiltrados = alunosFiltrados.filter(aluno => aluno.status === selectStatus.value);
         }
 
-        // Atualização da interface baseada no resultado dos filtros
         desenharTabela(alunosFiltrados);
     }
 
-    // Vinculação de eventos (Event Listeners) aos campos de pesquisa
+    // Vinculação de handlers aos eventos de interface
     if(inputBusca) inputBusca.addEventListener('input', aplicarFiltros);
     if(selectPolo) selectPolo.addEventListener('change', aplicarFiltros);
     if(selectTurma) selectTurma.addEventListener('change', aplicarFiltros);
     if(selectStatus) selectStatus.addEventListener('change', aplicarFiltros);
 
-    // Inicializa a recuperação de dados
     buscarAlunosNoBanco();
 }
 
 // ==========================================
-// MÓDULO 4: REGISTRO DE PRESENÇA (presenca.html)
+// MÓDULO 4: REGISTRO DE FREQUÊNCIA (presenca.html)
 // ==========================================
 const btnCarregarTurma = document.getElementById('btn-carregar-turma');
 const tabelaChamada = document.getElementById('tabela-chamada');
@@ -309,62 +304,75 @@ const btnAddVisitante = document.getElementById('btn-add-visitante');
 const btnSalvarChamada = document.getElementById('btn-salvar-chamada');
 
 if (btnCarregarTurma) {
-    let listaChamada = []; // Armazenamento temporário da listagem diária
+    let listaChamada = []; // Buffer de memória para payload de submissão
 
-    // 1. Consulta de alunos baseada na turma selecionada
+    // Consulta complexa ao Firestore para geração de lista de chamada
     btnCarregarTurma.addEventListener('click', async () => {
         const turmaSelecionada = document.getElementById('turma-chamada').value;
+        const selectPoloNode = document.getElementById('polo-chamada');
+        const poloSelecionado = selectPoloNode ? selectPoloNode.value : null;
 
-        if (!turmaSelecionada || turmaSelecionada === "Selecione a Turma...") {
-            alert("Operação inválida: É necessário selecionar uma turma.");
+        if (!turmaSelecionada || turmaSelecionada === "Selecione..." || !poloSelecionado || poloSelecionado === "") {
+            alert("Restrição: É necessário definir os parâmetros de Polo e Turma para a extração da lista.");
             return;
         }
 
-        tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4">Consultando base de alunos...</td></tr>';
+        tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4">Processando requisição de dados...</td></tr>';
 
         try {
-            // Consulta no Firestore filtrando por turma e status de matrícula ativo
-            const q = query(collection(db, "alunos"), where("turma", "==", turmaSelecionada), where("status", "==", "ativo"));
+            // Executa consulta indexada no banco filtrando por propriedades estritas
+            const q = query(
+                collection(db, "alunos"), 
+                where("polo", "==", poloSelecionado),
+                where("turma", "==", turmaSelecionada), 
+                where("status", "==", "ativo")
+            );
+            
             const querySnapshot = await getDocs(q);
-
             listaChamada = [];
             
             if (querySnapshot.empty) {
-                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">Nenhum registro de aluno ativo localizado para esta turma.</td></tr>';
+                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-danger">A query não retornou documentos ativos para estes parâmetros.</td></tr>';
                 return;
             }
 
-            // Armazenamento estruturado dos resultados
-            querySnapshot.forEach((doc) => {
-                const aluno = doc.data();
+            querySnapshot.forEach((docSnap) => {
+                const aluno = docSnap.data();
                 listaChamada.push({
-                    idFirebase: doc.id,
+                    idFirebase: docSnap.id,
                     nome: aluno.nome_completo,
-                    matricula: doc.id.substring(0, 5).toUpperCase(),
+                    matricula: docSnap.id.substring(0, 5).toUpperCase(),
                     visitante: false
                 });
             });
 
+            // Ordenação lexicográfica da matriz de dados
+            listaChamada.sort((a, b) => a.nome.localeCompare(b.nome));
+
             desenharTabelaChamada();
 
         } catch (error) {
-            console.error("Falha na consulta da turma:", error);
-            tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Erro de comunicação com o servidor.</td></tr>';
+            console.error("Exceção gerada na query da turma:", error);
+            // Prevenção de erro de Índice Composto do Firestore
+            if (error.message.includes("index") || error.message.includes("indexes")) {
+                alert("Aviso de Infraestrutura: O Firestore requer a construção de um Índice Composto para esta query. Verifique a aba Console (F12) para o link de autorização.");
+            } else {
+                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center text-danger py-4">Erro interno de servidor.</td></tr>';
+            }
         }
     });
 
-    // 2. Método de renderização da interface de marcação
+    // Renderizador de inputs de rádio para controle binário (Presente/Falta)
     function desenharTabelaChamada() {
         tabelaChamada.innerHTML = '';
         
         listaChamada.forEach((aluno, index) => {
-            // Definição estrutural das opções de Presença/Falta (Seleção padrão: Presente)
             const row = `
                 <tr>
                     <td class="fw-bold text-secondary">#${aluno.matricula}</td>
                     <td>
                         ${aluno.nome}
-                        ${aluno.visitante ? '<span class="badge bg-warning text-dark ms-2">Visitante</span>' : ''}
+                        ${aluno.visitante ? '<span class="badge bg-warning text-dark ms-2">Registro Provisório</span>' : ''}
                     </td>
                     <td class="text-center">
                         <div class="btn-group" role="group">
@@ -381,26 +389,25 @@ if (btnCarregarTurma) {
         });
     }
 
-    // 3. Inclusão manual de alunos não regulares
+    // Rotina de injeção de objeto na lista para alunos irregulares
     if (btnAddVisitante) {
         btnAddVisitante.addEventListener('click', () => {
             const inputVisitante = document.getElementById('nome-visitante');
             const nome = inputVisitante.value.trim();
 
             if (nome === '') {
-                alert("Validação pendente: Informe o nome do aluno visitante.");
+                alert("Validação: O nome da string de visitante não pode ser vazio.");
                 return;
             }
 
-            if (listaChamada.length === 0 && !confirm("Atenção: Nenhuma turma base foi carregada. Confirmar adição de visitante isolado?")) {
+            if (listaChamada.length === 0 && !confirm("Override: Submeter entrada em matriz vazia?")) {
                 return;
             }
 
-            // Inserção do registro provisório no array ativo
             listaChamada.push({
-                idFirebase: "visitante_" + Date.now(), // Identificador gerado via Timestamp
+                idFirebase: "temp_" + Date.now(), 
                 nome: nome,
-                matricula: "VISIT",
+                matricula: "N/A",
                 visitante: true
             });
 
@@ -409,25 +416,26 @@ if (btnCarregarTurma) {
         });
     }
 
-    // 4. Submissão e gravação do relatório no banco de dados
+    // Consolidação de dados e execução de POST na coleção de chamadas
     if (btnSalvarChamada) {
         btnSalvarChamada.addEventListener('click', async () => {
             const data = document.getElementById('data-chamada').value;
+            const polo = document.getElementById('polo-chamada') ? document.getElementById('polo-chamada').value : "";
             const turma = document.getElementById('turma-chamada').value;
             const prof = document.getElementById('prof-chamada').value.trim();
             const disc = document.getElementById('disc-chamada').value.trim();
 
-            if (!data || turma === "Selecione a Turma..." || !prof || !disc) {
-                alert("Dados incompletos: É obrigatório o preenchimento dos campos Data, Turma, Professor e Disciplina.");
+            if (!data || turma === "Selecione..." || !polo || polo === "" || !prof || !disc) {
+                alert("Restrição de integridade: Preenchimento obrigatório dos campos-chave (Data, Polo, Turma, Docente e Disciplina).");
                 return;
             }
 
             if (listaChamada.length === 0) {
-                alert("Operação cancelada: A lista de frequência não possui registros.");
+                alert("Falha lógica: O vetor de presença está vazio.");
                 return;
             }
 
-            // Processamento iterativo para determinação do status de frequência
+            // Agregação de status via travessia do array
             let registrosDePresenca = [];
             
             listaChamada.forEach((aluno, index) => {
@@ -446,14 +454,15 @@ if (btnCarregarTurma) {
                 });
             });
 
-            // Atualização de estado visual da submissão
-            btnSalvarChamada.innerText = "PROCESSANDO TRANSAÇÃO...";
+            // Tratamento visual para prevenir múltiplos envios (Debounce)
+            btnSalvarChamada.innerText = "SUBMETENDO PAYLOAD...";
             btnSalvarChamada.disabled = true;
 
             try {
-                // Inserção do novo documento na coleção de 'chamadas'
+                // Efetua a gravação do documento de chamada (Document Creation)
                 await addDoc(collection(db, "chamadas"), {
                     data: data,
+                    polo: polo, // Vincula a chamada à unidade correspondente
                     turma: turma,
                     professor: prof,
                     disciplina: disc,
@@ -461,18 +470,18 @@ if (btnCarregarTurma) {
                     data_registro: new Date()
                 });
 
-                alert("Operação concluída: Frequência registrada com sucesso no sistema.");
+                alert("Transação efetuada: Documento de presença persistido na base de dados.");
                 
-                // Restauração da interface pós-submissão
+                // Limpeza do contexto de memória e DOM
                 document.getElementById('prof-chamada').value = '';
                 document.getElementById('disc-chamada').value = '';
                 document.getElementById('nome-visitante').value = '';
                 listaChamada = [];
-                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted">Selecione uma turma acima e clique no botão para carregar a lista de alunos.</td></tr>';
+                tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted">Aguardando novos parâmetros para consulta.</td></tr>';
 
             } catch (error) {
-                console.error("Erro na gravação da chamada:", error);
-                alert("Falha de persistência de dados: " + error.message);
+                console.error("Falha no commit de transação:", error);
+                alert("Erro I/O: " + error.message);
             } finally {
                 btnSalvarChamada.innerText = "SALVAR CHAMADA NO BANCO";
                 btnSalvarChamada.disabled = false;
@@ -482,16 +491,16 @@ if (btnCarregarTurma) {
 }
 
 // ==========================================
-// MÓDULO 5: PERFIL E EDIÇÃO DE ALUNO (editarAluno.html)
+// MÓDULO 5: ATUALIZAÇÃO E DELEÇÃO DE ALUNOS (editarAluno.html)
 // ==========================================
 const formEditarAluno = document.getElementById('form-editar-aluno');
 
 if (formEditarAluno) {
-    // 1. Extração do Parâmetro ID da URL
+    // Parsing de Query String para identificação do documento
     const urlParams = new URLSearchParams(window.location.search);
     const alunoId = urlParams.get('id');
 
-    // Funções internas isoladas (Cópia exata para o escopo de Edição)
+    // Funções utilitárias clonadas para o escopo local de edição
     const aplicarMascaraCPF = (event) => {
         let value = event.target.value.replace(/\D/g, ""); 
         if (value.length > 11) value = value.slice(0, 11); 
@@ -527,23 +536,22 @@ if (formEditarAluno) {
     }
 
     if (!alunoId) {
-        alert("Erro de roteamento: Identificador do aluno não encontrado.");
+        alert("Exceção de Roteamento: Chave primária (ID) não fornecida.");
         window.location.href = "consultaAluno.html"; 
     } else {
         carregarDadosDoAluno(alunoId);
     }
 
-    // 2. Método de Consulta e Preenchimento Inicial
+    // Leitura individual do documento (GET por ID)
     async function carregarDadosDoAluno(id) {
         try {
-            // A. Busca os dados cadastrais
             const docRef = doc(db, "alunos", id);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
                 const aluno = docSnap.data();
                 
-                // Preenchimento do Formulário
+                // Inserção dos dados nos nodos do DOM
                 document.getElementById('edit-id').value = id;
                 document.getElementById('edit-nome').value = aluno.nome_completo;
                 document.getElementById('edit-email').value = aluno.email;
@@ -552,23 +560,23 @@ if (formEditarAluno) {
                 document.getElementById('edit-turma').value = aluno.turma;
                 document.getElementById('edit-status').value = aluno.status;
 
-                // B. Executa o Cálculo de Frequência
+                // Processo assíncrono para cálculo demográfico do aluno
                 calcularFrequenciaDoAluno(id, aluno.turma);
 
             } else {
-                alert("Erro: O registro do aluno não foi localizado na base de dados.");
+                alert("Erro 404: Documento não referenciado no banco.");
                 window.location.href = "consultaAluno.html";
             }
         } catch (error) {
-            console.error("Falha na recuperação de dados:", error);
-            alert("Erro de comunicação com o servidor.");
+            console.error("Exceção na leitura do documento:", error);
+            alert("Erro fatal na comunicação remota.");
         }
     }
 
-    // 3. Lógica Analítica: Cálculo de Presença
+    // Engine analítica para cálculo histórico de frequência (Map/Reduce simplificado)
     async function calcularFrequenciaDoAluno(idAluno, turmaAluno) {
         try {
-            // Consulta todas as chamadas realizadas para a turma deste aluno
+            // Varredura da coleção 'chamadas' pertinente à turma
             const q = query(collection(db, "chamadas"), where("turma", "==", turmaAluno));
             const chamadasSnapshot = await getDocs(q);
 
@@ -578,9 +586,9 @@ if (formEditarAluno) {
 
             chamadasSnapshot.forEach((chamadaDoc) => {
                 const chamadaData = chamadaDoc.data();
-                totalAulas++; // Cada documento é uma aula ministrada
+                totalAulas++; 
 
-                // Procura o aluno específico dentro da lista daquela chamada
+                // Extração do sub-documento correspondente ao aluno iterado
                 const registroDoAluno = chamadaData.alunos.find(a => a.id_aluno === idAluno);
                 
                 if (registroDoAluno) {
@@ -592,42 +600,41 @@ if (formEditarAluno) {
                 }
             });
 
-            // Processamento da Porcentagem
+            // Derivação estátistica
             let porcentagem = 0;
             if (totalAulas > 0) {
                 porcentagem = Math.round((presencas / totalAulas) * 100);
             }
 
-            // Renderização na Interface
+            // Atualização de dashboard individual do aluno
             document.getElementById('display-total-aulas').innerText = totalAulas;
             document.getElementById('display-presencas').innerText = presencas;
             document.getElementById('display-faltas').innerText = faltas;
             document.getElementById('display-porcentagem').innerText = `${porcentagem}%`;
 
-            // Alteração visual da cor do gráfico com base no risco de evasão
+            // Lógica visual baseada em métrica de risco de evasão
             const circle = document.getElementById('display-porcentagem').parentElement;
             if (porcentagem >= 75) {
-                circle.style.borderColor = "var(--ativo-bg)"; // Azul/Verde (Seguro)
+                circle.style.borderColor = "var(--ativo-bg)"; 
             } else if (porcentagem >= 50) {
-                circle.style.borderColor = "#f8c300"; // Amarelo (Atenção)
+                circle.style.borderColor = "#f8c300"; 
             } else {
-                circle.style.borderColor = "var(--inativo-bg)"; // Vermelho (Crítico)
+                circle.style.borderColor = "var(--inativo-bg)"; 
             }
 
         } catch (error) {
-            console.error("Erro no processamento de frequência:", error);
+            console.error("Falha no serviço de análise de frequência:", error);
         }
     }
 
-    // 4. Submissão da Atualização Cadastral
+    // Handler de atualização de dados (PATCH parcial)
     formEditarAluno.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const cpfDigitado = document.getElementById('edit-cpf').value;
 
-        // Executa a validação antes de prosseguir
         if (!validarCPF(cpfDigitado)) {
-            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            alert("Falha de Validação: O CPF retornado não atende aos critérios algorítmicos.");
             document.getElementById('edit-cpf').focus();
             return;
         }
@@ -639,7 +646,7 @@ if (formEditarAluno) {
         try {
             const alunoRef = doc(db, "alunos", alunoId);
             
-            // Atualiza os campos do banco de dados (incluindo o novo e-mail editado)
+            // Submissão do payload formatado
             await updateDoc(alunoRef, {
                 nome_completo: document.getElementById('edit-nome').value,
                 email: document.getElementById('edit-email').value,
@@ -649,39 +656,40 @@ if (formEditarAluno) {
                 status: document.getElementById('edit-status').value
             });
 
-            alert("Operação concluída: Registro do aluno atualizado com sucesso.");
-            window.location.href = "consultaAluno.html"; // Retorna para a tabela
+            alert("Transação efetuada: O documento foi modificado com sucesso.");
+            window.location.href = "consultaAluno.html"; 
 
         } catch (error) {
-            console.error("Erro na atualização:", error);
-            alert("Falha ao gravar alterações: " + error.message);
+            console.error("Exceção na atualização do documento:", error);
+            alert("Erro I/O durante atualização: " + error.message);
         } finally {
             btnSalvar.innerText = "SALVAR ALTERAÇÕES";
             btnSalvar.disabled = false;
         }
     });
 
-    // 5. Procedimento de Exclusão de Registro
+    // Handler de exclusão de documento (DELETE)
     const btnExcluir = document.getElementById('btn-excluir-aluno');
     if (btnExcluir) {
         btnExcluir.addEventListener('click', async () => {
-            const confirmacao = confirm("ATENÇÃO: Tem certeza que deseja excluir permanentemente este aluno do sistema? Esta ação não poderá ser desfeita.");
+            const confirmacao = confirm("CUIDADO: Confirma o soft-delete ou hard-delete deste documento? Esta operação do Firestore é irreversível.");
             
             if (confirmacao) {
                 try {
                     await deleteDoc(doc(db, "alunos", alunoId));
-                    alert("Operação concluída: Registro excluído da base de dados.");
-                    window.location.href = "consultaAluno.html"; // Retorna para a tabela
+                    alert("Documento expurgado com sucesso.");
+                    window.location.href = "consultaAluno.html"; 
                 } catch (error) {
-                    console.error("Erro na exclusão:", error);
-                    alert("Falha na exclusão do registro: " + error.message);
+                    console.error("Exceção na deleção:", error);
+                    alert("Erro no expurgo do registro: " + error.message);
                 }
             }
         });
     }
 }
+
 // ==========================================
-// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html), SAUDAÇÃO E CONTROLE DE ACESSO
+// MÓDULO 6: ROLE-BASED ACCESS CONTROL (RBAC) E DASHBOARD GLOBAL
 // ==========================================
 const greetingDisplay = document.getElementById('user-greeting-display');
 const displayAtivos = document.getElementById('dash-ativos');
@@ -689,101 +697,95 @@ const displayInativos = document.getElementById('dash-inativos');
 const displayAulas = document.getElementById('dash-aulas');
 const displayTotalAlunos = document.getElementById('dash-total-alunos');
 
-// 1. SISTEMA DE SEGURANÇA E CONTROLE DE ACESSO (RBAC)
+// Escuta reativa do Auth State para definição de acessos (Middleware local)
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         try {
             let nomeExibicao = "";
-            let cargoUsuario = "Aluno"; // Começa presumindo que é Aluno (nível mais baixo)
+            let cargoUsuario = "Aluno"; // Role de fallback (Mínimo Privilégio)
             
-            // A. Tenta achar o usuário na lista de Funcionários
+            // Leitura na coleção de staff (Administradores/Professores)
             const docFuncRef = doc(db, "funcionarios", user.uid);
             const docFuncSnap = await getDoc(docFuncRef);
             
             if (docFuncSnap.exists()) {
                 const dadosFunc = docFuncSnap.data();
                 nomeExibicao = dadosFunc.nome_completo;
-                cargoUsuario = dadosFunc.nivel_acesso; // "Administrador" ou "Professor"
+                cargoUsuario = dadosFunc.nivel_acesso; 
             } else {
-                // B. Se não achar, procura na lista de Alunos
+                // Leitura secundária em caso de miss na coleção primária
                 const docAlunoRef = doc(db, "alunos", user.uid);
                 const docAlunoSnap = await getDoc(docAlunoRef);
                 
                 if (docAlunoSnap.exists()) {
                     nomeExibicao = docAlunoSnap.data().nome_completo;
-                    cargoUsuario = "Aluno"; // Confirma que é Aluno
+                    cargoUsuario = "Aluno"; 
                 }
             }
             
-            // C. Fallback para a conta mestra (se não tiver cadastro)
+            // Garantia de acesso para superuser/owner caso não catalogado
             if (!nomeExibicao) {
                 nomeExibicao = user.email.split('@')[0];
-                cargoUsuario = "Administrador"; // Conta original ganha passe livre
+                cargoUsuario = "Administrador"; 
             }
             
-            // --- APLICAÇÃO DAS REGRAS REAIS DE TELA E ROTEAMENTO ---
+            // Aplicação da matriz de acesso (RBAC) na camada de visualização e rotas
             const pathAtual = window.location.pathname.toLowerCase();
 
-            // REGRA 1: ALUNO
+            // Lógica de bloqueio: Perfil Aluno
             if (cargoUsuario === "Aluno") {
-                // Esconde menus de Admin e Professor
                 document.querySelectorAll('.admin-only, .prof-admin-only, .prof-only').forEach(el => el.style.display = 'none');
                 
-                // Bloqueia acesso forçado por URL
                 if (pathAtual.includes('administração') || pathAtual.includes('alunos') || pathAtual.includes('presenca.html')) {
-                    alert("Acesso Negado: Sua conta de estudante não tem permissão para acessar esta área.");
+                    alert("403 Forbidden: Privilégios insuficientes de visualização.");
                     window.location.href = "/dashboard.html"; 
                 }
             } 
-            // REGRA 2: PROFESSOR
+            // Lógica de bloqueio: Perfil Docente
             else if (cargoUsuario === "Professor") {
-                // Esconde menus de Admin
                 document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
                 
-                // Bloqueia acesso forçado por URL (não tem mais transferenciaaluno aqui)
                 if (pathAtual.includes('administração') || pathAtual.includes('novoaluno') || pathAtual.includes('editaraluno')) {
-                    alert("Acesso Negado: Apenas a administração pode alterar os registros da base.");
+                    alert("403 Forbidden: Acesso administrativo exigido.");
                     window.location.href = "/dashboard.html"; 
                 }
             }
-            // REGRA 3: ADMINISTRADOR
+            // Lógica de bloqueio: Perfil Administrador
             else if (cargoUsuario === "Administrador") {
-                // Esconde menus exclusivos de Professor
                 document.querySelectorAll('.prof-only').forEach(el => el.style.display = 'none');
                 
-                // Bloqueia acesso forçado por URL
                 if (pathAtual.includes('presenca.html')) {
-                    alert("Acesso Negado: O registro de frequência é exclusivo para os Professores.");
+                    alert("Restrição Estrutural: Interface dedicada a docentes.");
                     window.location.href = "/dashboard.html"; 
                 }
             }
 
-            // Atualiza o nome na tela inicial
+            // Bind do Header
             if (greetingDisplay) {
                 const primeiroNome = nomeExibicao.split(' ')[0];
                 greetingDisplay.innerText = `OLÁ, ${primeiroNome.toUpperCase()}!`;
             }
 
-            // Carrega os dados numéricos se os cards estiverem na tela (Dashboard)
+            // Executa carga das dependências estatísticas se o nó raiz existir
             if (displayAtivos) {
                 carregarEstatisticasDashboard();
             }
             
         } catch (error) {
-            console.error("Erro na verificação de acesso:", error);
+            console.error("Falha na resolução do payload de acesso:", error);
         }
     } else {
-        // Expulsa se tentar acessar sem login (proteção básica)
+        // Redirecionamento obrigatório para root em caso de unauthenticated state
         if(!window.location.pathname.includes('index.html') && window.location.pathname !== '/' && window.location.pathname !== '') {
             window.location.href = "/index.html"; 
         }
     }
 });
 
-// 2. BUSCA DE ESTATÍSTICAS NO BANCO (Apenas para o Dashboard)
+// Consumo de documentos para geração das views quantitativas do painel
 async function carregarEstatisticasDashboard() {
     try {
-        // Conta os alunos
+        // Obtenção da demografia de alunos
         const alunosSnapshot = await getDocs(collection(db, "alunos"));
         let totalAtivos = 0;
         let totalInativos = 0;
@@ -795,18 +797,18 @@ async function carregarEstatisticasDashboard() {
             else if (aluno.status === "inativo") totalInativos++;
         });
 
-        // Conta as chamadas (aulas)
+        // Contabilização de volumes na coleção de chamadas
         const chamadasSnapshot = await getDocs(collection(db, "chamadas"));
         const totalAulas = chamadasSnapshot.size; 
 
-        // Aplica os números no HTML
+        // Injeção de valores na árvore DOM
         if(displayAtivos) displayAtivos.innerText = totalAtivos;
         if(displayInativos) displayInativos.innerText = totalInativos;
         if(displayTotalAlunos) displayTotalAlunos.innerText = totalGeral;
         if(displayAulas) displayAulas.innerText = totalAulas;
 
     } catch (error) {
-        console.error("Falha ao carregar métricas:", error);
+        console.error("Falha de computação nas métricas globais:", error);
         if(displayAtivos) displayAtivos.innerText = "!";
         if(displayInativos) displayInativos.innerText = "!";
         if(displayTotalAlunos) displayTotalAlunos.innerText = "!";
@@ -815,7 +817,7 @@ async function carregarEstatisticasDashboard() {
 }
 
 // ==========================================
-// MÓDULO 7: CADASTRO DE FUNCIONÁRIOS (cadastroUsuario.html)
+// MÓDULO 7: CRIAÇÃO DE FUNCIONÁRIOS/STAFF (cadastroUsuario.html)
 // ==========================================
 const formNovoUsuario = document.getElementById('form-novo-usuario');
 
@@ -823,7 +825,7 @@ if (formNovoUsuario) {
     const inputCpfUsuario = document.getElementById('cpf-usuario');
     const inputCelularUsuario = document.getElementById('celular-usuario');
 
-    // Funções internas isoladas de formatação e validação
+    // Utilitários isolados de Regex e Match
     const aplicarMascaraCPF = (event) => {
         let value = event.target.value.replace(/\D/g, ""); 
         if (value.length > 11) value = value.slice(0, 11); 
@@ -865,7 +867,7 @@ if (formNovoUsuario) {
         return true;
     };
 
-    // Aplicação dos ouvintes (Listeners)
+    // Binding dos componentes
     if (inputCpfUsuario) {
         inputCpfUsuario.setAttribute('maxlength', '14');
         inputCpfUsuario.addEventListener('input', aplicarMascaraCPF);
@@ -876,7 +878,6 @@ if (formNovoUsuario) {
         inputCelularUsuario.addEventListener('input', aplicarMascaraCelular);
     }
 
-    // Processamento do Formulário
     formNovoUsuario.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -889,29 +890,28 @@ if (formNovoUsuario) {
         const polo = document.getElementById('polo-usuario').value;
         const senha = document.getElementById('senha-usuario').value;
 
-        // Validação de Integridade
+        // Análise de Consistência
         if (!validarCPF(cpf)) {
-            alert("Validação pendente: O CPF informado é inválido. Verifique os números digitados.");
+            alert("Restrição impeditiva: O CPF inserido está incorreto do ponto de vista algorítmico.");
             document.getElementById('cpf-usuario').focus();
             return;
         }
 
-        if (acesso === "Selecione a permissão..." || polo === "Selecione o polo...") {
-            alert("Dados incompletos: Selecione o Nível de Acesso e o Polo Vinculado.");
+        if (acesso === "Selecione a permissão..." || polo === "" || polo === "Selecione o polo...") {
+            alert("Erro de sintaxe de dados: É imperativo que Nível de Acesso e Polo sejam selecionados.");
             return;
         }
 
-        // Feedback visual de carregamento
         const btnSalvar = document.getElementById('btn-salvar-usuario');
         btnSalvar.innerText = "PROCESSANDO...";
         btnSalvar.disabled = true;
 
-        // Criação na base de dados
+        // Criação de perfil via App Secundário
         createUserWithEmailAndPassword(authCadastro, email, senha)
             .then((userCredential) => {
                 const userFuncionario = userCredential.user;
                 
-                // Salva na coleção exclusiva de funcionários
+                // Gravação do objeto de perfil na coleção respectiva
                 return setDoc(doc(db, "funcionarios", userFuncionario.uid), {
                     nome_completo: nome,
                     email: email,
@@ -925,16 +925,16 @@ if (formNovoUsuario) {
                 });
             })
             .then(() => {
-                alert("Cadastro realizado com sucesso. O funcionário já possui credenciais de acesso.");
+                alert("Funcionário provisionado com sucesso.");
                 formNovoUsuario.reset(); 
             })
             .catch((error) => {
                 if(error.code === 'auth/email-already-in-use') {
-                    alert("Aviso: O endereço de e-mail informado já possui cadastro ativo no sistema.");
+                    alert("Constraint Violation: E-mail em uso por outro documento.");
                 } else if (error.code === 'auth/weak-password') {
-                    alert("Aviso de Segurança: A senha inicial deve conter pelo menos 6 caracteres.");
+                    alert("Política de Segurança: A complexidade da senha está abaixo do mínimo exigido (6 posições).");
                 } else {
-                    alert("Falha no processo de cadastro: " + error.message);
+                    alert("Falha sistêmica durante criação: " + error.message);
                 }
             })
             .finally(() => {
@@ -945,7 +945,7 @@ if (formNovoUsuario) {
 }
 
 // ==========================================
-// MÓDULO 8: CONSULTA DE USUÁRIOS (consultaUsuario.html)
+// MÓDULO 8: CONSULTA E GERENCIAMENTO DE STAFF (consultaUsuario.html)
 // ==========================================
 const tabelaUsuarios = document.getElementById('tabela-usuarios');
 
@@ -957,9 +957,9 @@ if (tabelaUsuarios) {
 
     let listaDeUsuarios = []; 
 
-    // 1. Executa a requisição ao banco de dados na inicialização
+    // Disparo primário do fetch
     async function buscarUsuariosNoBanco() {
-        tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4">Estabelecendo conexão com o servidor...</td></tr>';
+        tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4">Estabelecendo túnel de dados...</td></tr>';
         try {
             const querySnapshot = await getDocs(collection(db, "funcionarios"));
             listaDeUsuarios = []; 
@@ -973,17 +973,17 @@ if (tabelaUsuarios) {
             desenharTabelaUsuarios(listaDeUsuarios);
 
         } catch (error) {
-            console.error("Falha na recuperação de dados:", error);
-            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Falha de comunicação com o banco de dados.</td></tr>';
+            console.error("Exceção na carga de usuários:", error);
+            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Time-out / Erro na infra de dados.</td></tr>';
         }
     }
 
-    // 2. Método de construção da tabela HTML
+    // Geração de fragmentos do DOM
     function desenharTabelaUsuarios(usuariosParaMostrar) {
         tabelaUsuarios.innerHTML = ''; 
         
         if(usuariosParaMostrar.length === 0) {
-            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro correspondente aos critérios informados.</td></tr>';
+            tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">A matriz de resultados está vazia.</td></tr>';
             return;
         }
 
@@ -999,8 +999,8 @@ if (tabelaUsuarios) {
                             ${usuario.status ? usuario.status.toUpperCase() : 'ATIVO'}
                         </span>
                     </td>
-                    <td>
-                        <a href="editarUsuario.html?id=${usuario.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
+                    <td class="admin-only">
+                        <a href="editarUsuario.html?id=${usuario.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Configurar Referência"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             `;
@@ -1008,7 +1008,7 @@ if (tabelaUsuarios) {
         });
     }
 
-    // 3. Processamento dos filtros locais
+    // Engine de busca reativa via manipulação de Array
     function aplicarFiltrosUsuarios() {
         let filtrados = listaDeUsuarios;
 
@@ -1024,7 +1024,7 @@ if (tabelaUsuarios) {
             filtrados = filtrados.filter(u => u.nivel_acesso === selectCargoUsuario.value);
         }
 
-        if (selectPoloUsuario && selectPoloUsuario.value !== "todos") {
+        if (selectPoloUsuario && selectPoloUsuario.value !== "todos" && selectPoloUsuario.value !== "") {
             filtrados = filtrados.filter(u => u.polo === selectPoloUsuario.value);
         }
 
@@ -1035,18 +1035,17 @@ if (tabelaUsuarios) {
         desenharTabelaUsuarios(filtrados);
     }
 
-    // Vinculação de eventos aos campos de pesquisa
+    // Escuta de modificações na árvore do DOM
     if(inputBuscaUsuario) inputBuscaUsuario.addEventListener('input', aplicarFiltrosUsuarios);
     if(selectCargoUsuario) selectCargoUsuario.addEventListener('change', aplicarFiltrosUsuarios);
     if(selectPoloUsuario) selectPoloUsuario.addEventListener('change', aplicarFiltrosUsuarios);
     if(selectStatusUsuario) selectStatusUsuario.addEventListener('change', aplicarFiltrosUsuarios);
 
-    // Inicializa a recuperação de dados
     buscarUsuariosNoBanco();
 }
 
 // ==========================================
-// MÓDULO 9: PERFIL E EDIÇÃO DE USUÁRIOS (editarUsuario.html)
+// MÓDULO 9: MANUTENÇÃO CADASTRAL DE STAFF (editarUsuario.html)
 // ==========================================
 const formEditarUsuario = document.getElementById('form-editar-usuario');
 
@@ -1055,13 +1054,13 @@ if (formEditarUsuario) {
     const usuarioId = urlParams.get('id');
 
     if (!usuarioId) {
-        alert("Erro de roteamento: Identificador do usuário não encontrado.");
+        alert("Sinal de Falha: Parâmetro URLausente.");
         window.location.href = "consultaUsuario.html"; 
     } else {
         carregarDadosDoUsuario(usuarioId);
     }
 
-    // Máscaras e Validações isoladas
+    // Scripts de restrição de input baseados em máscara
     const aplicarMascaraCPF = (event) => {
         let value = event.target.value.replace(/\D/g, ""); 
         if (value.length > 11) value = value.slice(0, 11); 
@@ -1116,12 +1115,12 @@ if (formEditarUsuario) {
                 document.getElementById('edit-polo-usuario').value = usuario.polo;
                 document.getElementById('edit-status-usuario').value = usuario.status || "ativo";
             } else {
-                alert("Erro: O registro do funcionário não foi localizado na base de dados.");
+                alert("Erro: ID fantasma (Documento Inexistente).");
                 window.location.href = "consultaUsuario.html";
             }
         } catch (error) {
-            console.error("Falha na recuperação de dados:", error);
-            alert("Erro de comunicação com o servidor.");
+            console.error("Erro no processamento do fetch GET:", error);
+            alert("Rompimento de comunicação com o Firestore.");
         }
     }
 
@@ -1130,7 +1129,7 @@ if (formEditarUsuario) {
         
         const cpfDigitado = document.getElementById('edit-cpf-usuario').value;
         if (!validarCPF(cpfDigitado)) {
-            alert("Validação pendente: O CPF informado é inválido.");
+            alert("Exceção na validação: Numeral inválido.");
             return;
         }
 
@@ -1140,6 +1139,8 @@ if (formEditarUsuario) {
 
         try {
             const usuarioRef = doc(db, "funcionarios", usuarioId);
+            
+            // Submissão de update parcial no documento
             await updateDoc(usuarioRef, {
                 nome_completo: document.getElementById('edit-nome-usuario').value,
                 email: document.getElementById('edit-email-usuario').value,
@@ -1151,11 +1152,11 @@ if (formEditarUsuario) {
                 status: document.getElementById('edit-status-usuario').value
             });
 
-            alert("Operação concluída: Registro atualizado com sucesso.");
+            alert("Operação HTTP OK: Metadados modificados no banco.");
             window.location.href = "consultaUsuario.html"; 
         } catch (error) {
-            console.error("Erro na atualização:", error);
-            alert("Falha ao gravar alterações: " + error.message);
+            console.error("Falha no commit da modificação:", error);
+            alert("A atualização falhou: " + error.message);
         } finally {
             btnSalvar.innerText = "SALVAR ALTERAÇÕES";
             btnSalvar.disabled = false;
@@ -1165,15 +1166,15 @@ if (formEditarUsuario) {
     const btnExcluir = document.getElementById('btn-excluir-usuario');
     if (btnExcluir) {
         btnExcluir.addEventListener('click', async () => {
-            const confirmacao = confirm("ATENÇÃO: Tem certeza que deseja excluir permanentemente este funcionário da base de dados?");
+            const confirmacao = confirm("OPERAÇÃO DE RISCO: A deleção deste nó é irreversível. Prosseguir?");
             if (confirmacao) {
                 try {
                     await deleteDoc(doc(db, "funcionarios", usuarioId));
-                    alert("Operação concluída: Registro excluído.");
+                    alert("Aviso do Servidor: Deleção efetuada (200 OK).");
                     window.location.href = "consultaUsuario.html"; 
                 } catch (error) {
-                    console.error("Erro na exclusão:", error);
-                    alert("Falha na exclusão: " + error.message);
+                    console.error("Exceção não tratada na deleção:", error);
+                    alert("O sistema falhou ao expurgar o nó: " + error.message);
                 }
             }
         });
@@ -1181,20 +1182,20 @@ if (formEditarUsuario) {
 }
 
 // ==========================================
-// MÓDULO 10: CADASTRO DE POLOS (cadastroPolo.html)
+// MÓDULO 10: INICIALIZAÇÃO E CRIAÇÃO DE POLOS (cadastroPolo.html)
 // ==========================================
 const formNovoPolo = document.getElementById('form-novo-polo');
 
 if (formNovoPolo) {
     formNovoPolo.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Evita que a página recarregue
+        e.preventDefault(); 
 
         const btnSalvar = document.getElementById('btn-salvar-polo');
-        btnSalvar.innerText = "SALVANDO...";
+        btnSalvar.innerText = "PROCESSANDO PAYLOAD...";
         btnSalvar.disabled = true;
 
         try {
-            // 1. Coleta e organiza os dados digitados (sem o CNPJ)
+            // Empacotamento das propriedades do objeto
             const dadosPolo = {
                 nome: document.getElementById('nome-polo').value,
                 cep: document.getElementById('cep-polo').value,
@@ -1203,21 +1204,20 @@ if (formNovoPolo) {
                 bairro: document.getElementById('bairro-polo').value,
                 cidade: document.getElementById('cidade-polo').value,
                 responsavel: document.getElementById('responsavel-polo').value,
-                status: "ativo", // Já nasce ativo por padrão
+                status: "ativo", 
                 data_cadastro: new Date()
             };
 
-            // 2. Salva no banco de dados na coleção "polos"
+            // Disparo assíncrono para criação automática de ID de coleção
             await addDoc(collection(db, "polos"), dadosPolo);
 
-            alert("Operação concluída: Novo polo registrado com sucesso na base de dados!");
-            formNovoPolo.reset(); // Limpa o formulário para o próximo cadastro
+            alert("Registro gerado. Nova unidade indexada na rede.");
+            formNovoPolo.reset(); 
 
         } catch (error) {
-            console.error("Erro na gravação do polo:", error);
-            alert("Falha na gravação: " + error.message);
+            console.error("Falha no método POST na coleção Polos:", error);
+            alert("Ocorreu um throw: " + error.message);
         } finally {
-            // Devolve o botão ao estado normal
             btnSalvar.innerText = "Salvar Polo";
             btnSalvar.disabled = false;
         }
@@ -1225,7 +1225,7 @@ if (formNovoPolo) {
 }
 
 // ==========================================
-// MÓDULO 11: CONSULTA E LISTAGEM DE POLOS (consultaPolo.html)
+// MÓDULO 11: GERENCIAMENTO DE TABELA DE UNIDADES (consultaPolo.html)
 // ==========================================
 const tabelaPolos = document.getElementById('tabela-polos');
 
@@ -1234,19 +1234,17 @@ if (tabelaPolos) {
 
     async function carregarPolos() {
         try {
-            // Busca a coleção "polos" no banco de dados
             const querySnapshot = await getDocs(collection(db, "polos"));
             listaPolos = [];
             
             querySnapshot.forEach((doc) => {
-                // Guarda a ID do Firebase junto com os dados do polo
                 listaPolos.push({ idFirebase: doc.id, ...doc.data() });
             });
             
             desenharTabelaPolos();
         } catch (error) {
-            console.error("Erro ao buscar polos:", error);
-            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Erro de conexão ao carregar os dados.</td></tr>`;
+            console.error("Falha na captura do pool de polos:", error);
+            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Erro fatal na extração do banco.</td></tr>`;
         }
     }
 
@@ -1256,7 +1254,7 @@ if (tabelaPolos) {
 
         tabelaPolos.innerHTML = '';
 
-        // Filtra a lista com base no que o usuário digitou ou selecionou
+        // Condicional lógica de triagem na string base (Nome OR Cidade)
         const polosFiltrados = listaPolos.filter(polo => {
             const matchNomeOuCidade = (polo.nome && polo.nome.toLowerCase().includes(termoBusca)) || 
                                       (polo.cidade && polo.cidade.toLowerCase().includes(termoBusca));
@@ -1266,11 +1264,10 @@ if (tabelaPolos) {
         });
 
         if (polosFiltrados.length === 0) {
-            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center py-4" style="color: var(--text-light);">Nenhum polo encontrado com os filtros atuais.</td></tr>`;
+            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center py-4" style="color: var(--text-light);">Array vazio após aplicação dos filtros.</td></tr>`;
             return;
         }
 
-        // Desenha as linhas na tabela
         polosFiltrados.forEach(polo => {
             const tr = document.createElement('tr');
             
@@ -1281,20 +1278,82 @@ if (tabelaPolos) {
             tr.innerHTML = `
                 <td class="fw-bold" style="color: var(--side-logo-bg);">${polo.nome.toUpperCase()}</td>
                 <td>${polo.cidade || '-'}</td>
-                <td>${polo.responsavel || 'Não informado'}</td>
+                <td>${polo.responsavel || 'Não referenciado'}</td>
                 <td>${badgeStatus}</td>
                 <td class="admin-only">
-                    <a href="editarPolo.html?id=${polo.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
+                    <a href="editarPolo.html?id=${polo.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Gerenciar Unidade"><i class="bi bi-pencil"></i></a>
                 </td>
             `;
             tabelaPolos.appendChild(tr);
         });
     }
 
-    
+    // Declaração dos event listeners locais
     document.getElementById('busca-nome-polo').addEventListener('input', desenharTabelaPolos);
     document.getElementById('filtro-status-polo').addEventListener('change', desenharTabelaPolos);
 
-    // Dispara a busca pela primeira vez quando a página carrega
     carregarPolos();
 }
+
+// ==========================================
+// MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA
+// ==========================================
+async function preencherPolosDinamicos() {
+    // Mapeamento de elementos select correspondentes aos polos baseados em sintaxe CSS
+    const selectsPolos = document.querySelectorAll('.dynamic-polo-select, #filtro-polo, #filtro-polo-usuario');
+
+    if (selectsPolos.length === 0) return; // Halt-state caso o DOM não possua dependências
+
+    try {
+        // Query assíncrona para extração de enumerações ativas
+        const querySnapshot = await getDocs(collection(db, "polos"));
+        let polosAtivos = [];
+
+        querySnapshot.forEach((doc) => {
+            const polo = doc.data();
+            if (polo.status === 'ativo') {
+                polosAtivos.push(polo.nome);
+            }
+        });
+
+        // Ordenamento de matriz para padrão visual
+        polosAtivos.sort();
+
+        selectsPolos.forEach(select => {
+            // Bufferização do state antes do reset do DOM object
+            const valorSalvo = select.value;
+
+            select.innerHTML = ''; 
+
+            // Construção hierárquica baseada no tipo de interface consumidora
+            if (select.id.includes('filtro')) {
+                select.innerHTML = '<option value="todos">Todos os Polos</option>';
+                if (select.id === 'filtro-polo-usuario') {
+                    select.innerHTML += '<option value="Todos os Polos (Global)">Todos os Polos (Global)</option>';
+                }
+            } 
+            else {
+                select.innerHTML = '<option value="" disabled>Selecione a alocação...</option>';
+                if (select.id === 'edit-polo-usuario' || select.id === 'polo-usuario') {
+                    select.innerHTML += '<option value="Todos os Polos (Global)">Todos os Polos (Global)</option>';
+                }
+            }
+
+            // Injeção iterativa de propriedades originadas da base de dados
+            polosAtivos.forEach(nomePolo => {
+                select.innerHTML += `<option value="${nomePolo}">${nomePolo}</option>`;
+            });
+
+            // Resolução de dados persistentes em caso de componentes editáveis
+            if (valorSalvo && valorSalvo !== 'Carregando polos...' && valorSalvo !== 'Carregando...' && valorSalvo !== '') {
+                select.value = valorSalvo;
+            }
+        });
+
+    } catch (error) {
+        console.error("Falha do parser dinâmico na requisição da lista de polos:", error);
+    }
+}
+
+// Initializer do middleware
+preencherPolosDinamicos();
