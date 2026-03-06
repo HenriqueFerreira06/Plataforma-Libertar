@@ -22,9 +22,9 @@
                 <li><a href="../dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
                 
                 <li class="dropdown-hover prof-admin-only">
-                    <a href="javascript:void(0)"><i class="bi bi-people-fill"></i> Alunos</a>
-                    <ul class="submenu">
-                        <li class="admin-only"><a href="novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+                    <a href="javascript:void(0)" class="active"><i class="bi bi-people-fill"></i> Alunos</a>
+                    <ul class="submenu" style="max-height: 250px;">
+                        <li class="admin-only"><a href="novoAluno.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
                         <li class="prof-admin-only"><a href="consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
                     </ul>
                 </li>
@@ -39,7 +39,7 @@
                         <li><a href="../Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
                         <li><a href="../Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
                         <li><a href="../Administração/consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
-                        <li><a href="../Administração/consultaPolo.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-building"></i> Consultar Polos</a></li>
+                        <li><a href="../Administração/consultaPolo.html"><i class="bi bi-building"></i> Consultar Polos</a></li>
                     </ul>
                 </li>
                 
@@ -58,20 +58,20 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-2">
                             <label class="form-label">Matrícula <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control dash-input" placeholder="Ex: 12345" disabled>
+                            <input type="text" class="form-control dash-input" placeholder="Automático" disabled>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Polo <span class="text-danger">*</span></label>
-                            <select id="edit-polo" class="form-select dash-input dynamic-polo-select" required>
-                                        <option value="" selected disabled>Carregando polos...</option>
-                                    </select>
+                            <select id="polo" class="form-select dash-input dynamic-polo-select" required>
+                                <option value="" selected disabled>Carregando polos...</option>
+                            </select>
                         </div>
                         <div class="col-md-5">
                             <label class="form-label">Turma <span class="text-danger">*</span></label>
-                            <select id="turma" class="form-select dash-input">
-                                <option selected disabled>Selecione a turma...</option>
-                                <option>Turma A - Manhã</option>
-                                <option>Turma B - Tarde</option>
+                            <select id="turma" class="form-select dash-input" required>
+                                <option value="" selected disabled>Selecione a turma...</option>
+                                <option value="Turma A - Manhã">Turma A - Manhã</option>
+                                <option value="Turma B - Tarde">Turma B - Tarde</option>
                             </select>
                         </div>
                     </div>
@@ -79,7 +79,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Nome Completo (Civil) <span class="text-danger">*</span></label>
-                            <input type="text" id="nome" class="form-control dash-input" placeholder="Digite o nome completo">
+                            <input type="text" id="nome" class="form-control dash-input" placeholder="Digite o nome completo" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nome Social</label>
@@ -90,7 +90,7 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-3">
                             <label class="form-label">CPF <span class="text-danger">*</span></label>
-                            <input type="text" id="cpf" class="form-control dash-input" placeholder="000.000.000-00">
+                            <input type="text" id="cpf" class="form-control dash-input" placeholder="000.000.000-00" required>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">RG</label>
@@ -118,15 +118,15 @@
                             <input type="tel" id="celular" class="form-control dash-input" placeholder="(00) 00000-0000">
                         </div>
                         <div class="col-md-8">
-                            <label class="form-label" >E-mail</label>
-                            <input type="email" id="email" class="form-control dash-input" placeholder="exemplo@email.com">
+                            <label class="form-label" >E-mail <span class="text-danger">*</span></label>
+                            <input type="email" id="email" class="form-control dash-input" placeholder="exemplo@email.com" required>
                         </div>
                     </div>
 
                 </form>
 
                 <div class="d-flex justify-content-end gap-3 mt-auto pt-3" style="border-top: 1px solid rgba(89, 84, 79, 0.2);">
-                    <button type="button" class="btn btn-cancelar">Cancelar</button>
+                    <button type="reset" form="form-novo-aluno" class="btn btn-cancelar">Cancelar</button>
                     <button type="submit" form="form-novo-aluno" class="btn btn-salvar">Salvar Cadastro</button>
                 </div>
 

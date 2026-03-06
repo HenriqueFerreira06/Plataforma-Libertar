@@ -1299,13 +1299,11 @@ if (tabelaPolos) {
 // MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA
 // ==========================================
 async function preencherPolosDinamicos() {
-    // Mapeamento de elementos select correspondentes aos polos baseados em sintaxe CSS
     const selectsPolos = document.querySelectorAll('.dynamic-polo-select, #filtro-polo, #filtro-polo-usuario');
 
-    if (selectsPolos.length === 0) return; // Halt-state caso o DOM não possua dependências
+    if (selectsPolos.length === 0) return;
 
     try {
-        // Query assíncrona para extração de enumerações ativas
         const querySnapshot = await getDocs(collection(db, "polos"));
         let polosAtivos = [];
 
@@ -1316,37 +1314,43 @@ async function preencherPolosDinamicos() {
             }
         });
 
-        // Ordenamento de matriz para padrão visual
         polosAtivos.sort();
 
         selectsPolos.forEach(select => {
-            // Bufferização do state antes do reset do DOM object
             const valorSalvo = select.value;
-
             select.innerHTML = ''; 
 
-            // Construção hierárquica baseada no tipo de interface consumidora
+            // Telas de Filtro (Consulta)
             if (select.id.includes('filtro')) {
-                select.innerHTML = '<option value="todos">Todos os Polos</option>';
+                // Ação de mostrar a lista inteira
+                select.innerHTML = '<option value="todos">Mostrar Todos os Polos</option>';
+                
+                // Opção para filtrar e achar especificamente os funcionários globais
                 if (select.id === 'filtro-polo-usuario') {
-                    select.innerHTML += '<option value="Todos os Polos (Global)">Todos os Polos (Global)</option>';
+                    select.innerHTML += '<option value="Global"> Apenas Funcionários Globais</option>';
                 }
             } 
+            // Telas de Formulário (Cadastro/Edição)
             else {
                 select.innerHTML = '<option value="" disabled>Selecione a alocação...</option>';
+                
+                // Permite atribuir o cargo "Global" na criação/edição de funcionários
                 if (select.id === 'edit-polo-usuario' || select.id === 'polo-usuario') {
-                    select.innerHTML += '<option value="Todos os Polos (Global)">Todos os Polos (Global)</option>';
+                    select.innerHTML += '<option value="Global"> Atuação Global (Rede Completa)</option>';
                 }
             }
 
-            // Injeção iterativa de propriedades originadas da base de dados
             polosAtivos.forEach(nomePolo => {
                 select.innerHTML += `<option value="${nomePolo}">${nomePolo}</option>`;
             });
 
-            // Resolução de dados persistentes em caso de componentes editáveis
-            if (valorSalvo && valorSalvo !== 'Carregando polos...' && valorSalvo !== 'Carregando...' && valorSalvo !== '') {
-                select.value = valorSalvo;
+            // Tratamento de compatibilidade para quem já estava salvo com o nome antigo
+            if (valorSalvo && !valorSalvo.includes('Carregando') && valorSalvo !== '') {
+                if (valorSalvo === "Todos os Polos (Global)") {
+                    select.value = "Global";
+                } else {
+                    select.value = valorSalvo;
+                }
             }
         });
 
