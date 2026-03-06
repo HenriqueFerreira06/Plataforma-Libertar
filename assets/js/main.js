@@ -1357,3 +1357,100 @@ async function preencherPolosDinamicos() {
 
 // Initializer do middleware
 preencherPolosDinamicos();
+
+// ==========================================
+// MÓDULO 13: ATUALIZAÇÃO E EXCLUSÃO DE POLOS (editarPolo.html)
+// ==========================================
+const formEditarPolo = document.getElementById('form-editar-polo');
+
+if (formEditarPolo) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const poloId = urlParams.get('id');
+
+    if (!poloId) {
+        alert("Erro de Roteamento: ID da unidade não identificado na URL.");
+        window.location.href = "consultaPolo.html";
+    } else {
+        carregarDadosDoPolo(poloId);
+    }
+
+    // Leitura do documento selecionado
+    async function carregarDadosDoPolo(id) {
+        try {
+            const docRef = doc(db, "polos", id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const polo = docSnap.data();
+                document.getElementById('edit-id-polo').value = id;
+                document.getElementById('edit-nome-polo').value = polo.nome;
+                document.getElementById('edit-cep-polo').value = polo.cep;
+                document.getElementById('edit-endereco-polo').value = polo.endereco;
+                document.getElementById('edit-numero-polo').value = polo.numero;
+                document.getElementById('edit-bairro-polo').value = polo.bairro;
+                document.getElementById('edit-cidade-polo').value = polo.cidade;
+                document.getElementById('edit-responsavel-polo').value = polo.responsavel || "";
+                document.getElementById('edit-status-polo').value = polo.status || "ativo";
+            } else {
+                alert("Erro 404: A unidade não foi encontrada no banco de dados.");
+                window.location.href = "consultaPolo.html";
+            }
+        } catch (error) {
+            console.error("Falha na leitura do Polo (GET):", error);
+            alert("Erro na comunicação com a infraestrutura de dados.");
+        }
+    }
+
+    // Submissão do formulário de atualização (PATCH)
+    formEditarPolo.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const btnSalvar = document.getElementById('btn-salvar-edicao-polo');
+        btnSalvar.innerText = "ATUALIZANDO PAYLOAD...";
+        btnSalvar.disabled = true;
+
+        try {
+            const poloRef = doc(db, "polos", poloId);
+
+            await updateDoc(poloRef, {
+                nome: document.getElementById('edit-nome-polo').value,
+                cep: document.getElementById('edit-cep-polo').value,
+                endereco: document.getElementById('edit-endereco-polo').value,
+                numero: document.getElementById('edit-numero-polo').value,
+                bairro: document.getElementById('edit-bairro-polo').value,
+                cidade: document.getElementById('edit-cidade-polo').value,
+                responsavel: document.getElementById('edit-responsavel-polo').value,
+                status: document.getElementById('edit-status-polo').value
+            });
+
+            alert("Transação efetuada: Dados da unidade sincronizados com sucesso.");
+            window.location.href = "consultaPolo.html";
+
+        } catch (error) {
+            console.error("Erro na atualização do Polo (PATCH):", error);
+            alert("Falha na gravação dos dados: " + error.message);
+        } finally {
+            btnSalvar.innerText = "Salvar Alterações";
+            btnSalvar.disabled = false;
+        }
+    });
+
+    // Rotina de exclusão do documento (DELETE)
+    const btnExcluirPolo = document.getElementById('btn-excluir-polo');
+    if (btnExcluirPolo) {
+        btnExcluirPolo.addEventListener('click', async () => {
+            const confirmacao = confirm("ATENÇÃO MÁXIMA: Excluir este polo pode gerar inconsistência nos alunos e funcionários vinculados a ele. Confirma a exclusão?");
+            
+            if (confirmacao) {
+                try {
+                    await deleteDoc(doc(db, "polos", poloId));
+                    alert("Operação concluída: Unidade expurgada do sistema.");
+                    window.location.href = "consultaPolo.html";
+                } catch (error) {
+                    console.error("Exceção ao deletar polo:", error);
+                    alert("Falha na exclusão do documento: " + error.message);
+                }
+            }
+        });
+    }
+}
