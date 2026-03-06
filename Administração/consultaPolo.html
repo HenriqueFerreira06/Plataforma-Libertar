@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Localizar Usuário - Plataforma Libertar</title>
+    <title>Consultar Polos - Plataforma Libertar</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -38,8 +38,8 @@
                     <ul class="submenu" style="max-height: 250px;">
                         <li><a href="cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
                         <li><a href="cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
-                        <li><a href="consultaUsuario.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-search"></i> Consultar Usuários</a></li>
-                          <li><a href="consultaPolo.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-building"></i> Consultar Polos</a></li>
+                        <li><a href="consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
+                        <li><a href="consultaPolo.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-building"></i> Consultar Polos</a></li>
                     </ul>
                 </li>
                 
@@ -50,32 +50,18 @@
         <main class="main-content">
             
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="user-greeting mb-0">LOCALIZAR USUÁRIOS E FUNCIONÁRIOS</h1>
+                <h1 class="user-greeting mb-0">LOCALIZAR POLOS E UNIDADES</h1>
+                <a href="cadastroPolo.html" class="btn btn-salvar"><i class="bi bi-plus-lg"></i> Novo Polo</a>
             </div>
 
             <div class="dash-card d-flex flex-column h-100" style="max-height: 80vh;">
                 
                 <div class="row g-2 mb-4">
-                    <div class="col-md-3">
-                        <input type="text" id="busca-nome-usuario" class="form-control dash-input" placeholder="Buscar por Nome ou CPF...">
+                    <div class="col-md-6">
+                        <input type="text" id="busca-nome-polo" class="form-control dash-input" placeholder="Buscar pelo Nome do Polo ou Cidade...">
                     </div>
                     <div class="col-md-3">
-                        <select id="filtro-cargo-usuario" class="form-select dash-input">
-                            <option value="todos">Todos os Acessos</option>
-                            <option value="Administrador">Administrador</option>
-                            <option value="Professor">Professor</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select id="filtro-polo-usuario" class="form-select dash-input">
-                            <option value="todos">Todos os Polos</option>
-                            <option value="Todos os Polos (Global)">Global</option>
-                            <option value="Polo Central">Polo Central</option>
-                            <option value="Polo Norte">Polo Norte</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select id="filtro-status-usuario" class="form-select dash-input">
+                        <select id="filtro-status-polo" class="form-select dash-input">
                             <option value="todos">Status (Todos)</option>
                             <option value="ativo">Ativos</option>
                             <option value="inativo">Inativos</option>
@@ -87,16 +73,16 @@
                     <table class="custom-table w-100 m-0">
                         <thead>
                             <tr>
-                                <th>NOME COMPLETO</th>
-                                <th>E-MAIL</th>
-                                <th>ACESSO</th>
-                                <th>POLO</th>
+                                <th>NOME DO POLO</th>
+                                <th>CIDADE</th>
+                                <th>RESPONSÁVEL</th>
                                 <th>STATUS</th>
                                 <th class="admin-only">AÇÕES</th>
                             </tr>
                         </thead>
-                        <tbody id="tabela-usuarios">
-                            </tbody>
+                        <tbody id="tabela-polos">
+                            <tr><td colspan="5" class="text-center py-4">Carregando polos...</td></tr>
+                        </tbody>
                     </table>
                 </div>
 

@@ -1224,3 +1224,77 @@ if (formNovoPolo) {
     });
 }
 
+// ==========================================
+// MÓDULO 11: CONSULTA E LISTAGEM DE POLOS (consultaPolo.html)
+// ==========================================
+const tabelaPolos = document.getElementById('tabela-polos');
+
+if (tabelaPolos) {
+    let listaPolos = [];
+
+    async function carregarPolos() {
+        try {
+            // Busca a coleção "polos" no banco de dados
+            const querySnapshot = await getDocs(collection(db, "polos"));
+            listaPolos = [];
+            
+            querySnapshot.forEach((doc) => {
+                // Guarda a ID do Firebase junto com os dados do polo
+                listaPolos.push({ idFirebase: doc.id, ...doc.data() });
+            });
+            
+            desenharTabelaPolos();
+        } catch (error) {
+            console.error("Erro ao buscar polos:", error);
+            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Erro de conexão ao carregar os dados.</td></tr>`;
+        }
+    }
+
+    function desenharTabelaPolos() {
+        const termoBusca = document.getElementById('busca-nome-polo').value.toLowerCase();
+        const filtroStatus = document.getElementById('filtro-status-polo').value;
+
+        tabelaPolos.innerHTML = '';
+
+        // Filtra a lista com base no que o usuário digitou ou selecionou
+        const polosFiltrados = listaPolos.filter(polo => {
+            const matchNomeOuCidade = (polo.nome && polo.nome.toLowerCase().includes(termoBusca)) || 
+                                      (polo.cidade && polo.cidade.toLowerCase().includes(termoBusca));
+            const matchStatus = filtroStatus === 'todos' || polo.status === filtroStatus;
+            
+            return matchNomeOuCidade && matchStatus;
+        });
+
+        if (polosFiltrados.length === 0) {
+            tabelaPolos.innerHTML = `<tr><td colspan="5" class="text-center py-4" style="color: var(--text-light);">Nenhum polo encontrado com os filtros atuais.</td></tr>`;
+            return;
+        }
+
+        // Desenha as linhas na tabela
+        polosFiltrados.forEach(polo => {
+            const tr = document.createElement('tr');
+            
+            let badgeStatus = polo.status === 'ativo' 
+                ? '<span class="badge bg-success" style="font-size: 0.75rem; padding: 5px 10px; letter-spacing: 1px;">ATIVO</span>' 
+                : '<span class="badge bg-danger" style="font-size: 0.75rem; padding: 5px 10px; letter-spacing: 1px;">INATIVO</span>';
+
+            tr.innerHTML = `
+                <td class="fw-bold" style="color: var(--side-logo-bg);">${polo.nome.toUpperCase()}</td>
+                <td>${polo.cidade || '-'}</td>
+                <td>${polo.responsavel || 'Não informado'}</td>
+                <td>${badgeStatus}</td>
+                <td class="admin-only">
+                    <a href="editarPolo.html?id=${polo.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Registro"><i class="bi bi-pencil"></i></a>
+                </td>
+            `;
+            tabelaPolos.appendChild(tr);
+        });
+    }
+
+    
+    document.getElementById('busca-nome-polo').addEventListener('input', desenharTabelaPolos);
+    document.getElementById('filtro-status-polo').addEventListener('change', desenharTabelaPolos);
+
+    // Dispara a busca pela primeira vez quando a página carrega
+    carregarPolos();
+}
