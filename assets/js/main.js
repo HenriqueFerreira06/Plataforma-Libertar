@@ -1007,3 +1007,138 @@ if (tabelaUsuarios) {
     buscarUsuariosNoBanco();
 }
 
+// ==========================================
+// MÓDULO 9: PERFIL E EDIÇÃO DE USUÁRIOS (editarUsuario.html)
+// ==========================================
+const formEditarUsuario = document.getElementById('form-editar-usuario');
+
+if (formEditarUsuario) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const usuarioId = urlParams.get('id');
+
+    if (!usuarioId) {
+        alert("Erro de roteamento: Identificador do usuário não encontrado.");
+        window.location.href = "consultaUsuario.html"; 
+    } else {
+        carregarDadosDoUsuario(usuarioId);
+    }
+
+    // Máscaras e Validações isoladas
+    const aplicarMascaraCPF = (event) => {
+        let value = event.target.value.replace(/\D/g, ""); 
+        if (value.length > 11) value = value.slice(0, 11); 
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d)/, "$1.$2");
+        value = value.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        event.target.value = value;
+    };
+
+    const aplicarMascaraCelular = (event) => {
+        let v = event.target.value.replace(/\D/g, ""); 
+        v = v.substring(0, 11); 
+        if (v.length > 10) v = v.replace(/^(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+        else if (v.length > 6) v = v.replace(/^(\d{2})(\d{4})(\d{0,4})/, "($1) $2-$3");
+        else if (v.length > 2) v = v.replace(/^(\d{2})(\d{0,5})/, "($1) $2");
+        event.target.value = v;
+    };
+
+    const validarCPF = (cpf) => {
+        cpf = cpf.replace(/\D/g, ''); 
+        if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false; 
+        let soma = 0, resto;
+        for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(9, 10))) return false;
+        soma = 0;
+        for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
+        resto = (soma * 10) % 11;
+        if ((resto === 10) || (resto === 11)) resto = 0;
+        if (resto !== parseInt(cpf.substring(10, 11))) return false;
+        return true;
+    };
+
+    document.getElementById('edit-cpf-usuario').addEventListener('input', aplicarMascaraCPF);
+    document.getElementById('edit-celular-usuario').addEventListener('input', aplicarMascaraCelular);
+
+    async function carregarDadosDoUsuario(id) {
+        try {
+            const docRef = doc(db, "funcionarios", id);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                const usuario = docSnap.data();
+                document.getElementById('edit-id-usuario').value = id;
+                document.getElementById('edit-nome-usuario').value = usuario.nome_completo;
+                document.getElementById('edit-email-usuario').value = usuario.email;
+                document.getElementById('edit-cpf-usuario').value = usuario.cpf;
+                document.getElementById('edit-cargo-usuario').value = usuario.cargo;
+                document.getElementById('edit-celular-usuario').value = usuario.celular || "";
+                document.getElementById('edit-acesso-usuario').value = usuario.nivel_acesso;
+                document.getElementById('edit-polo-usuario').value = usuario.polo;
+                document.getElementById('edit-status-usuario').value = usuario.status || "ativo";
+            } else {
+                alert("Erro: O registro do funcionário não foi localizado na base de dados.");
+                window.location.href = "consultaUsuario.html";
+            }
+        } catch (error) {
+            console.error("Falha na recuperação de dados:", error);
+            alert("Erro de comunicação com o servidor.");
+        }
+    }
+
+    formEditarUsuario.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const cpfDigitado = document.getElementById('edit-cpf-usuario').value;
+        if (!validarCPF(cpfDigitado)) {
+            alert("Validação pendente: O CPF informado é inválido.");
+            return;
+        }
+
+        const btnSalvar = document.getElementById('btn-salvar-edicao-usuario');
+        btnSalvar.innerText = "ATUALIZANDO...";
+        btnSalvar.disabled = true;
+
+        try {
+            const usuarioRef = doc(db, "funcionarios", usuarioId);
+            await updateDoc(usuarioRef, {
+                nome_completo: document.getElementById('edit-nome-usuario').value,
+                email: document.getElementById('edit-email-usuario').value,
+                cpf: cpfDigitado,
+                cargo: document.getElementById('edit-cargo-usuario').value,
+                celular: document.getElementById('edit-celular-usuario').value,
+                nivel_acesso: document.getElementById('edit-acesso-usuario').value,
+                polo: document.getElementById('edit-polo-usuario').value,
+                status: document.getElementById('edit-status-usuario').value
+            });
+
+            alert("Operação concluída: Registro atualizado com sucesso.");
+            window.location.href = "consultaUsuario.html"; 
+        } catch (error) {
+            console.error("Erro na atualização:", error);
+            alert("Falha ao gravar alterações: " + error.message);
+        } finally {
+            btnSalvar.innerText = "SALVAR ALTERAÇÕES";
+            btnSalvar.disabled = false;
+        }
+    });
+
+    const btnExcluir = document.getElementById('btn-excluir-usuario');
+    if (btnExcluir) {
+        btnExcluir.addEventListener('click', async () => {
+            const confirmacao = confirm("ATENÇÃO: Tem certeza que deseja excluir permanentemente este funcionário da base de dados?");
+            if (confirmacao) {
+                try {
+                    await deleteDoc(doc(db, "funcionarios", usuarioId));
+                    alert("Operação concluída: Registro excluído.");
+                    window.location.href = "consultaUsuario.html"; 
+                } catch (error) {
+                    console.error("Erro na exclusão:", error);
+                    alert("Falha na exclusão: " + error.message);
+                }
+            }
+        });
+    }
+}
+
