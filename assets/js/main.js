@@ -1592,7 +1592,7 @@ if (tabelaHistorico) {
         desenharTabelaHistorico(filtrados);
     }
 
-    // 3. Renderização do DOM (Tabela Principal)
+    // 3. Renderização do DOM (Tabela Principal) - ATUALIZADO COM BOTÃO EDITAR
     function desenharTabelaHistorico(dadosParaMostrar) {
         tabelaHistorico.innerHTML = '';
 
@@ -1613,9 +1613,14 @@ if (tabelaHistorico) {
                 <td>${chamada.professor}</td>
                 <td>${chamada.disciplina}</td>
                 <td>
-                    <button class="btn btn-sm btn-outline-secondary px-3" onclick="abrirRelatorio('${chamada.idFirebase}')" title="Gerar Relatório / Imprimir">
-                        <i class="bi bi-printer"></i>
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary px-3" onclick="abrirRelatorio('${chamada.idFirebase}')" title="Gerar Relatório / Imprimir">
+                            <i class="bi bi-printer"></i>
+                        </button>
+                        <a href="editarChamada.html?id=${chamada.idFirebase}" class="btn btn-sm btn-outline-secondary px-3" title="Editar Registro / Excluir">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </div>
                 </td>
             `;
             tabelaHistorico.appendChild(tr);
@@ -1623,9 +1628,7 @@ if (tabelaHistorico) {
     }
 
     // 4. Injeção de Dados no Componente Modal (Visão de Impressão)
-    // Usamos 'window' para que a função seja acessível pelo 'onclick' no HTML gerado acima
     window.abrirRelatorio = function(idFirebase) {
-        // Isola o objeto da chamada selecionada
         const chamada = listaHistorico.find(c => c.idFirebase === idFirebase);
         
         if (!chamada) {
@@ -1633,22 +1636,18 @@ if (tabelaHistorico) {
             return;
         }
 
-        // Popula o cabeçalho do documento
         document.getElementById('rel-data').innerText = chamada.data.split('-').reverse().join('/');
         document.getElementById('rel-polo').innerText = chamada.polo || 'Não Identificado';
         document.getElementById('rel-turma').innerText = chamada.turma;
         document.getElementById('rel-prof').innerText = chamada.professor;
         document.getElementById('rel-disc').innerText = chamada.disciplina;
 
-        // Injeta a timestamp exata da geração do relatório
         const dataHoraAtual = new Date();
         document.getElementById('rel-gerado-em').innerText = dataHoraAtual.toLocaleString('pt-BR');
 
-        // Popula a tabela detalhada de alunos
         const relTabelaAlunos = document.getElementById('rel-tabela-alunos');
         relTabelaAlunos.innerHTML = '';
 
-        // Ordena a lista de presença por ordem alfabética para facilitar leitura do papel
         const alunosOrdenados = chamada.alunos.sort((a, b) => a.nome.localeCompare(b.nome));
 
         alunosOrdenados.forEach(aluno => {
@@ -1669,15 +1668,113 @@ if (tabelaHistorico) {
             `;
         });
 
-        // Invoca o Modal via Bootstrap JS Engine
         const modalElement = document.getElementById('modalRelatorio');
         const modalInstance = new bootstrap.Modal(modalElement);
         modalInstance.show();
     };
 
-    // Binding dos eventos de gatilho
     document.getElementById('btn-filtrar-historico').addEventListener('click', aplicarFiltrosHistorico);
 
-    // Engine Start
     carregarHistoricoNoBanco();
+}
+
+// ==========================================
+// MÓDULO 15: EDIÇÃO E EXCLUSÃO DE CHAMADAS (editarChamada.html)
+// ==========================================
+const formEditarChamada = document.getElementById('form-editar-chamada');
+
+if (formEditarChamada) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const chamadaId = urlParams.get('id');
+    let dadosAlunosEdicao = []; // Cache local da lista de presença daquela aula
+
+    if (!chamadaId) {
+        window.location.href = "historicoChamadas.html";
+    } else {
+        carregarDadosDaChamada(chamadaId);
+    }
+
+    async function carregarDadosDaChamada(id) {
+        try {
+            const docSnap = await getDoc(doc(db, "chamadas", id));
+            if (docSnap.exists()) {
+                const chamada = docSnap.data();
+                document.getElementById('edit-id-chamada').value = id;
+                document.getElementById('edit-data-chamada').value = chamada.data;
+                document.getElementById('edit-polo-chamada').value = chamada.polo || "Não definido";
+                document.getElementById('edit-turma-chamada').value = chamada.turma;
+                document.getElementById('edit-prof-chamada').value = chamada.professor;
+                document.getElementById('edit-disc-chamada').value = chamada.disciplina;
+                
+                dadosAlunosEdicao = chamada.alunos;
+                renderizarListaAlunosEdicao();
+            }
+        } catch (error) {
+            console.error("Erro ao carregar chamada:", error);
+        }
+    }
+
+    function renderizarListaAlunosEdicao() {
+        const tabela = document.getElementById('tabela-edicao-chamada');
+        tabela.innerHTML = '';
+
+        dadosAlunosEdicao.forEach((aluno, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold">#${aluno.matricula}</td>
+                <td>${aluno.nome.toUpperCase()} ${aluno.visitante ? '<small class="text-warning">(Visitante)</small>' : ''}</td>
+                <td class="text-center">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="status_${index}" id="p_${index}" value="presente" ${aluno.status === 'presente' ? 'checked' : ''}>
+                        <label class="btn btn-outline-success btn-sm px-3" for="p_${index}">P</label>
+
+                        <input type="radio" class="btn-check" name="status_${index}" id="f_${index}" value="falta" ${aluno.status === 'falta' ? 'checked' : ''}>
+                        <label class="btn btn-outline-danger btn-sm px-3" for="f_${index}">F</label>
+                    </div>
+                </td>
+            `;
+            tabela.appendChild(tr);
+        });
+    }
+
+    formEditarChamada.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        btn.innerText = "SALVANDO...";
+        btn.disabled = true;
+
+        // Captura os novos status de presença marcados nos rádios
+        const novosRegistros = dadosAlunosEdicao.map((aluno, index) => {
+            const statusMarcado = document.querySelector(`input[name="status_${index}"]:checked`).value;
+            return { ...aluno, status: statusMarcado };
+        });
+
+        try {
+            await updateDoc(doc(db, "chamadas", chamadaId), {
+                data: document.getElementById('edit-data-chamada').value,
+                professor: document.getElementById('edit-prof-chamada').value,
+                disciplina: document.getElementById('edit-disc-chamada').value,
+                alunos: novosRegistros
+            });
+            alert("Chamada atualizada com sucesso!");
+            window.location.href = "historicoChamadas.html";
+        } catch (error) {
+            alert("Erro ao salvar: " + error.message);
+        } finally {
+            btn.innerText = "SALVAR ALTERAÇÕES";
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('btn-excluir-chamada').addEventListener('click', async () => {
+        if (confirm("ATENÇÃO: Deseja excluir permanentemente este registro de chamada?")) {
+            try {
+                await deleteDoc(doc(db, "chamadas", chamadaId));
+                alert("Registro excluído!");
+                window.location.href = "historicoChamadas.html";
+            } catch (error) {
+                alert("Erro ao excluir: " + error.message);
+            }
+        }
+    });
 }
