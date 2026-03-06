@@ -681,7 +681,7 @@ if (formEditarAluno) {
     }
 }
 // ==========================================
-// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html) E SAUDAÇÃO
+// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html), SAUDAÇÃO E CONTROLE DE ACESSO
 // ==========================================
 const greetingDisplay = document.getElementById('user-greeting-display');
 const displayAtivos = document.getElementById('dash-ativos');
@@ -689,90 +689,128 @@ const displayInativos = document.getElementById('dash-inativos');
 const displayAulas = document.getElementById('dash-aulas');
 const displayTotalAlunos = document.getElementById('dash-total-alunos');
 
-if (greetingDisplay || displayAtivos) {
-    
-    // 1. SISTEMA DE SEGURANÇA E SAUDAÇÃO INTELIGENTE
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            if (greetingDisplay) {
-                try {
-                    let nomeExibicao = "";
-                    
-                    // A. Tenta achar o usuário na lista de Funcionários
-                    const docFuncRef = doc(db, "funcionarios", user.uid);
-                    const docFuncSnap = await getDoc(docFuncRef);
-                    
-                    if (docFuncSnap.exists()) {
-                        nomeExibicao = docFuncSnap.data().nome_completo;
-                    } else {
-                        // B. Se não achar, tenta achar na lista de Alunos
-                        const docAlunoRef = doc(db, "alunos", user.uid);
-                        const docAlunoSnap = await getDoc(docAlunoRef);
-                        
-                        if (docAlunoSnap.exists()) {
-                            nomeExibicao = docAlunoSnap.data().nome_completo;
-                        }
-                    }
-                    
-                    // C. Se não achar em lugar nenhum (Ex: A conta Admin Mestra original), usa o email
-                    if (!nomeExibicao) {
-                        nomeExibicao = user.email.split('@')[0];
-                    }
-                    
-                    // Pega só o primeiro nome da pessoa para a saudação não ficar gigante
-                    const primeiroNome = nomeExibicao.split(' ')[0];
-                    greetingDisplay.innerText = `OLÁ, ${primeiroNome.toUpperCase()}!`;
-                    
-                } catch (error) {
-                    console.error("Erro ao buscar o nome real no banco:", error);
-                    const fallbackNome = user.email.split('@')[0];
-                    greetingDisplay.innerText = `OLÁ, ${fallbackNome.toUpperCase()}!`;
+// 1. SISTEMA DE SEGURANÇA E CONTROLE DE ACESSO (RBAC)
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        try {
+            let nomeExibicao = "";
+            let cargoUsuario = "Aluno"; // Começa presumindo que é Aluno (nível mais baixo)
+            
+            // A. Tenta achar o usuário na lista de Funcionários
+            const docFuncRef = doc(db, "funcionarios", user.uid);
+            const docFuncSnap = await getDoc(docFuncRef);
+            
+            if (docFuncSnap.exists()) {
+                const dadosFunc = docFuncSnap.data();
+                nomeExibicao = dadosFunc.nome_completo;
+                cargoUsuario = dadosFunc.nivel_acesso; // "Administrador" ou "Professor"
+            } else {
+                // B. Se não achar, procura na lista de Alunos
+                const docAlunoRef = doc(db, "alunos", user.uid);
+                const docAlunoSnap = await getDoc(docAlunoRef);
+                
+                if (docAlunoSnap.exists()) {
+                    nomeExibicao = docAlunoSnap.data().nome_completo;
+                    cargoUsuario = "Aluno"; // Confirma que é Aluno
                 }
             }
-        } else {
-            // Se tentar abrir a página sem login, expulsa pra tela inicial
-            if(window.location.pathname.includes('dashboard.html')) {
-                window.location.href = "index.html";
+            
+            // C. Fallback para a conta mestra (se não tiver cadastro)
+            if (!nomeExibicao) {
+                nomeExibicao = user.email.split('@')[0];
+                cargoUsuario = "Administrador"; // Conta original ganha passe livre
             }
-        }
-    });
+            
+            // --- APLICAÇÃO DAS REGRAS REAIS DE TELA E ROTEAMENTO ---
+            const pathAtual = window.location.pathname.toLowerCase();
 
-    // 2. BUSCA DE ESTATÍSTICAS NO BANCO
-    async function carregarEstatisticasDashboard() {
-        try {
-            // Conta os alunos
-            const alunosSnapshot = await getDocs(collection(db, "alunos"));
-            let totalAtivos = 0;
-            let totalInativos = 0;
-            let totalGeral = alunosSnapshot.size;
+            // REGRA 1: ALUNO
+            if (cargoUsuario === "Aluno") {
+                // Esconde menus de Admin e Professor
+                document.querySelectorAll('.admin-only, .prof-admin-only, .prof-only').forEach(el => el.style.display = 'none');
+                
+                // Bloqueia acesso forçado por URL
+                if (pathAtual.includes('administração') || pathAtual.includes('alunos') || pathAtual.includes('presenca.html')) {
+                    alert("Acesso Negado: Sua conta de estudante não tem permissão para acessar esta área.");
+                    window.location.href = "/dashboard.html"; 
+                }
+            } 
+            // REGRA 2: PROFESSOR
+            else if (cargoUsuario === "Professor") {
+                // Esconde menus de Admin
+                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+                
+                // Bloqueia acesso forçado por URL (não tem mais transferenciaaluno aqui)
+                if (pathAtual.includes('administração') || pathAtual.includes('novoaluno') || pathAtual.includes('editaraluno')) {
+                    alert("Acesso Negado: Apenas a administração pode alterar os registros da base.");
+                    window.location.href = "/dashboard.html"; 
+                }
+            }
+            // REGRA 3: ADMINISTRADOR
+            else if (cargoUsuario === "Administrador") {
+                // Esconde menus exclusivos de Professor
+                document.querySelectorAll('.prof-only').forEach(el => el.style.display = 'none');
+                
+                // Bloqueia acesso forçado por URL
+                if (pathAtual.includes('presenca.html')) {
+                    alert("Acesso Negado: O registro de frequência é exclusivo para os Professores.");
+                    window.location.href = "/dashboard.html"; 
+                }
+            }
 
-            alunosSnapshot.forEach((doc) => {
-                const aluno = doc.data();
-                if (aluno.status === "ativo") totalAtivos++;
-                else if (aluno.status === "inativo") totalInativos++;
-            });
+            // Atualiza o nome na tela inicial
+            if (greetingDisplay) {
+                const primeiroNome = nomeExibicao.split(' ')[0];
+                greetingDisplay.innerText = `OLÁ, ${primeiroNome.toUpperCase()}!`;
+            }
 
-            // Conta as chamadas (aulas)
-            const chamadasSnapshot = await getDocs(collection(db, "chamadas"));
-            const totalAulas = chamadasSnapshot.size; 
-
-            // Aplica os números no HTML
-            if(displayAtivos) displayAtivos.innerText = totalAtivos;
-            if(displayInativos) displayInativos.innerText = totalInativos;
-            if(displayTotalAlunos) displayTotalAlunos.innerText = totalGeral;
-            if(displayAulas) displayAulas.innerText = totalAulas;
-
+            // Carrega os dados numéricos se os cards estiverem na tela (Dashboard)
+            if (displayAtivos) {
+                carregarEstatisticasDashboard();
+            }
+            
         } catch (error) {
-            console.error("Falha ao carregar métricas:", error);
-            if(displayAtivos) displayAtivos.innerText = "!";
-            if(displayInativos) displayInativos.innerText = "!";
-            if(displayTotalAlunos) displayTotalAlunos.innerText = "!";
-            if(displayAulas) displayAulas.innerText = "!";
+            console.error("Erro na verificação de acesso:", error);
+        }
+    } else {
+        // Expulsa se tentar acessar sem login (proteção básica)
+        if(!window.location.pathname.includes('index.html') && window.location.pathname !== '/' && window.location.pathname !== '') {
+            window.location.href = "/index.html"; 
         }
     }
+});
 
-    if (displayAtivos) {
-        carregarEstatisticasDashboard();
+// 2. BUSCA DE ESTATÍSTICAS NO BANCO (Apenas para o Dashboard)
+async function carregarEstatisticasDashboard() {
+    try {
+        // Conta os alunos
+        const alunosSnapshot = await getDocs(collection(db, "alunos"));
+        let totalAtivos = 0;
+        let totalInativos = 0;
+        let totalGeral = alunosSnapshot.size;
+
+        alunosSnapshot.forEach((doc) => {
+            const aluno = doc.data();
+            if (aluno.status === "ativo") totalAtivos++;
+            else if (aluno.status === "inativo") totalInativos++;
+        });
+
+        // Conta as chamadas (aulas)
+        const chamadasSnapshot = await getDocs(collection(db, "chamadas"));
+        const totalAulas = chamadasSnapshot.size; 
+
+        // Aplica os números no HTML
+        if(displayAtivos) displayAtivos.innerText = totalAtivos;
+        if(displayInativos) displayInativos.innerText = totalInativos;
+        if(displayTotalAlunos) displayTotalAlunos.innerText = totalGeral;
+        if(displayAulas) displayAulas.innerText = totalAulas;
+
+    } catch (error) {
+        console.error("Falha ao carregar métricas:", error);
+        if(displayAtivos) displayAtivos.innerText = "!";
+        if(displayInativos) displayInativos.innerText = "!";
+        if(displayTotalAlunos) displayTotalAlunos.innerText = "!";
+        if(displayAulas) displayAulas.innerText = "!";
     }
 }
 

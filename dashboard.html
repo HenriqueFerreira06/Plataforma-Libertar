@@ -20,21 +20,20 @@
             </div>
 
             <ul class="sidebar-menu">
-                <li><a href="dashboard.html" class="active"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
                 
-                <li class="dropdown-hover">
-                    <a href="javascript:void(0)">
-                        <i class="bi bi-people-fill"></i> Alunos
-                    </a>
+                <li><a href="dashboard.html" class="active"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
+
+                <li class="dropdown-hover prof-admin-only">
+                    <a href="javascript:void(0)"><i class="bi bi-people-fill"></i> Alunos</a>
                     <ul class="submenu">
-                        <li><a href="Alunos/novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
-                        <li><a href="Alunos/consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+                        <li class="admin-only"><a href="Alunos/novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+                        <li class="prof-admin-only"><a href="Alunos/consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>                
                     </ul>
                 </li>
 
-                <li><a href="presenca.html"><i class="bi bi-calendar-check-fill"></i> Presença</a></li>
-                
-                <li class="dropdown-hover">
+                <li class="prof-only"><a href="presenca.html"><i class="bi bi-calendar-check-fill"></i> Presença</a></li>
+
+                <li class="dropdown-hover admin-only">
                     <a href="javascript:void(0)">
                         <i class="bi bi-gear-fill"></i> Administração
                     </a>
