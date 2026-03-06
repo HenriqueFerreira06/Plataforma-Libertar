@@ -1180,3 +1180,47 @@ if (formEditarUsuario) {
     }
 }
 
+// ==========================================
+// MÓDULO 10: CADASTRO DE POLOS (cadastroPolo.html)
+// ==========================================
+const formNovoPolo = document.getElementById('form-novo-polo');
+
+if (formNovoPolo) {
+    formNovoPolo.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Evita que a página recarregue
+
+        const btnSalvar = document.getElementById('btn-salvar-polo');
+        btnSalvar.innerText = "SALVANDO...";
+        btnSalvar.disabled = true;
+
+        try {
+            // 1. Coleta e organiza os dados digitados (sem o CNPJ)
+            const dadosPolo = {
+                nome: document.getElementById('nome-polo').value,
+                cep: document.getElementById('cep-polo').value,
+                endereco: document.getElementById('endereco-polo').value,
+                numero: document.getElementById('numero-polo').value,
+                bairro: document.getElementById('bairro-polo').value,
+                cidade: document.getElementById('cidade-polo').value,
+                responsavel: document.getElementById('responsavel-polo').value,
+                status: "ativo", // Já nasce ativo por padrão
+                data_cadastro: new Date()
+            };
+
+            // 2. Salva no banco de dados na coleção "polos"
+            await addDoc(collection(db, "polos"), dadosPolo);
+
+            alert("Operação concluída: Novo polo registrado com sucesso na base de dados!");
+            formNovoPolo.reset(); // Limpa o formulário para o próximo cadastro
+
+        } catch (error) {
+            console.error("Erro na gravação do polo:", error);
+            alert("Falha na gravação: " + error.message);
+        } finally {
+            // Devolve o botão ao estado normal
+            btnSalvar.innerText = "Salvar Polo";
+            btnSalvar.disabled = false;
+        }
+    });
+}
+
