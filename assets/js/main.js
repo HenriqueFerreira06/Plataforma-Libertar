@@ -1530,3 +1530,154 @@ if (formEditarPolo) {
         });
     }
 }
+
+// ==========================================
+// MÓDULO 14: HISTÓRICO DE CHAMADAS E GERAÇÃO DE PDF (historicoChamadas.html)
+// ==========================================
+const tabelaHistorico = document.getElementById('tabela-historico');
+
+if (tabelaHistorico) {
+    let listaHistorico = []; // Array de cache para evitar múltiplas requisições ao banco
+
+    // 1. Carrega toda a coleção de chamadas ao abrir a página
+    async function carregarHistoricoNoBanco() {
+        tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center py-4">Sincronizando registros com o banco de dados...</td></tr>';
+        
+        try {
+            const querySnapshot = await getDocs(collection(db, "chamadas"));
+            listaHistorico = [];
+            
+            querySnapshot.forEach((doc) => {
+                listaHistorico.push({ idFirebase: doc.id, ...doc.data() });
+            });
+
+            // Ordena os relatórios decrescente (do mais recente para o mais antigo)
+            listaHistorico.sort((a, b) => new Date(b.data) - new Date(a.data));
+            
+            aplicarFiltrosHistorico(); // Desenha a tabela com os dados
+
+        } catch (error) {
+            console.error("Falha na extração do histórico de chamadas:", error);
+            tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro de comunicação com o servidor Firestore.</td></tr>';
+        }
+    }
+
+    // 2. Lógica de Filtragem (Data, Polo e Turma)
+    function aplicarFiltrosHistorico() {
+        const dataInicio = document.getElementById('busca-data-inicio').value;
+        const dataFim = document.getElementById('busca-data-fim').value;
+        const filtroPolo = document.getElementById('filtro-polo').value;
+        const filtroTurma = document.getElementById('filtro-turma').value;
+
+        let filtrados = listaHistorico;
+
+        // Filtro por range de datas
+        if (dataInicio) {
+            filtrados = filtrados.filter(chamada => chamada.data >= dataInicio);
+        }
+        if (dataFim) {
+            filtrados = filtrados.filter(chamada => chamada.data <= dataFim);
+        }
+
+        // Filtro por unidade (ignora se estiver no placeholder "todos" ou vazio)
+        if (filtroPolo && filtroPolo !== "todos" && filtroPolo !== "") {
+            filtrados = filtrados.filter(chamada => chamada.polo === filtroPolo);
+        }
+
+        // Filtro por turma
+        if (filtroTurma && filtroTurma !== "todos") {
+            filtrados = filtrados.filter(chamada => chamada.turma === filtroTurma);
+        }
+
+        desenharTabelaHistorico(filtrados);
+    }
+
+    // 3. Renderização do DOM (Tabela Principal)
+    function desenharTabelaHistorico(dadosParaMostrar) {
+        tabelaHistorico.innerHTML = '';
+
+        if (dadosParaMostrar.length === 0) {
+            tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro atende aos critérios do filtro.</td></tr>';
+            return;
+        }
+
+        dadosParaMostrar.forEach(chamada => {
+            // Conversão de formato de data padrão (YYYY-MM-DD para DD/MM/YYYY)
+            const dataFormatada = chamada.data.split('-').reverse().join('/');
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="fw-bold" style="color: var(--side-logo-bg);">${dataFormatada}</td>
+                <td>${chamada.polo || 'Global/Não Definido'}</td>
+                <td>${chamada.turma}</td>
+                <td>${chamada.professor}</td>
+                <td>${chamada.disciplina}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary px-3" onclick="abrirRelatorio('${chamada.idFirebase}')" title="Gerar Relatório / Imprimir">
+                        <i class="bi bi-printer"></i>
+                    </button>
+                </td>
+            `;
+            tabelaHistorico.appendChild(tr);
+        });
+    }
+
+    // 4. Injeção de Dados no Componente Modal (Visão de Impressão)
+    // Usamos 'window' para que a função seja acessível pelo 'onclick' no HTML gerado acima
+    window.abrirRelatorio = function(idFirebase) {
+        // Isola o objeto da chamada selecionada
+        const chamada = listaHistorico.find(c => c.idFirebase === idFirebase);
+        
+        if (!chamada) {
+            alert("Erro de consistência: Documento não localizado na memória.");
+            return;
+        }
+
+        // Popula o cabeçalho do documento
+        document.getElementById('rel-data').innerText = chamada.data.split('-').reverse().join('/');
+        document.getElementById('rel-polo').innerText = chamada.polo || 'Não Identificado';
+        document.getElementById('rel-turma').innerText = chamada.turma;
+        document.getElementById('rel-prof').innerText = chamada.professor;
+        document.getElementById('rel-disc').innerText = chamada.disciplina;
+
+        // Injeta a timestamp exata da geração do relatório
+        const dataHoraAtual = new Date();
+        document.getElementById('rel-gerado-em').innerText = dataHoraAtual.toLocaleString('pt-BR');
+
+        // Popula a tabela detalhada de alunos
+        const relTabelaAlunos = document.getElementById('rel-tabela-alunos');
+        relTabelaAlunos.innerHTML = '';
+
+        // Ordena a lista de presença por ordem alfabética para facilitar leitura do papel
+        const alunosOrdenados = chamada.alunos.sort((a, b) => a.nome.localeCompare(b.nome));
+
+        alunosOrdenados.forEach(aluno => {
+            let badgePresenca = aluno.status === 'presente' 
+                ? '<span class="badge bg-success w-100" style="letter-spacing: 1px;">PRESENTE</span>' 
+                : '<span class="badge bg-danger w-100" style="letter-spacing: 1px;">FALTOU</span>';
+
+            let visitanteTag = aluno.visitante 
+                ? ' <span style="font-size: 0.7rem; color: #d97706; font-weight: bold;">(Visitante)</span>' 
+                : '';
+
+            relTabelaAlunos.innerHTML += `
+                <tr>
+                    <td class="fw-bold text-secondary">#${aluno.matricula}</td>
+                    <td>${aluno.nome.toUpperCase()} ${visitanteTag}</td>
+                    <td class="text-center">${badgePresenca}</td>
+                </tr>
+            `;
+        });
+
+        // Invoca o Modal via Bootstrap JS Engine
+        const modalElement = document.getElementById('modalRelatorio');
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    };
+
+    // Binding dos eventos de gatilho
+    document.getElementById('btn-filtrar-historico').addEventListener('click', aplicarFiltrosHistorico);
+
+    // Engine Start
+    carregarHistoricoNoBanco();
+}
