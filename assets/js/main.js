@@ -1,6 +1,6 @@
 // 1. Importações do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 // 2. Configurações de autenticação do projeto Libertar
@@ -678,5 +678,72 @@ if (formEditarAluno) {
                 }
             }
         });
+    }
+}
+// ==========================================
+// MÓDULO 6: PAINEL DE CONTROLE (dashboard.html)
+// ==========================================
+const greetingDisplay = document.getElementById('user-greeting-display');
+const displayAtivos = document.getElementById('dash-ativos');
+const displayInativos = document.getElementById('dash-inativos');
+const displayAulas = document.getElementById('dash-aulas');
+const displayTotalAlunos = document.getElementById('dash-total-alunos');
+
+// Verifica se estamos na tela do Dashboard
+if (greetingDisplay || displayAtivos) {
+    
+    // 1. SISTEMA DE SEGURANÇA E SAUDAÇÃO
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // Se o usuário não tiver um "Nome" salvo, usamos o começo do e-mail dele
+            let nome = user.displayName;
+            if (!nome) {
+                nome = user.email.split('@')[0]; // Pega o que vem antes do @
+            }
+            if (greetingDisplay) {
+                greetingDisplay.innerText = `OLÁ, ${nome.toUpperCase()}!`;
+            }
+        } else {
+            // Se tentar abrir o dashboard sem fazer login, é expulso para a tela inicial
+            window.location.href = "index.html";
+        }
+    });
+
+    // 2. BUSCA DE ESTATÍSTICAS NO BANCO
+    async function carregarEstatisticasDashboard() {
+        try {
+            // Conta os alunos
+            const alunosSnapshot = await getDocs(collection(db, "alunos"));
+            let totalAtivos = 0;
+            let totalInativos = 0;
+            let totalGeral = alunosSnapshot.size; // Tamanho total da lista
+
+            alunosSnapshot.forEach((doc) => {
+                const aluno = doc.data();
+                if (aluno.status === "ativo") totalAtivos++;
+                else if (aluno.status === "inativo") totalInativos++;
+            });
+
+            // Conta as chamadas (aulas)
+            const chamadasSnapshot = await getDocs(collection(db, "chamadas"));
+            const totalAulas = chamadasSnapshot.size; 
+
+            // Aplica os números no HTML
+            if(displayAtivos) displayAtivos.innerText = totalAtivos;
+            if(displayInativos) displayInativos.innerText = totalInativos;
+            if(displayTotalAlunos) displayTotalAlunos.innerText = totalGeral;
+            if(displayAulas) displayAulas.innerText = totalAulas;
+
+        } catch (error) {
+            console.error("Falha ao carregar métricas:", error);
+            if(displayAtivos) displayAtivos.innerText = "!";
+            if(displayInativos) displayInativos.innerText = "!";
+            if(displayTotalAlunos) displayTotalAlunos.innerText = "!";
+            if(displayAulas) displayAulas.innerText = "!";
+        }
+    }
+
+    if (displayAtivos) {
+        carregarEstatisticasDashboard();
     }
 }

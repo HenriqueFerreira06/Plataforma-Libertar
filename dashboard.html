@@ -51,7 +51,7 @@
 
         <main class="main-content">
             
-            <h1 class="user-greeting">OLÁ, USUÁRIO!</h1>
+            <h1 class="user-greeting" id="user-greeting-display">OLÁ, CARREGANDO...</h1>
 
             <div class="row g-4">
                 
@@ -69,7 +69,7 @@
                                 </div>
                                 <div class="status-info">
                                     <span class="title">ATIVO</span>
-                                    <span class="number">179</span>
+                                    <span class="number" id="dash-ativos">--</span>
                                 </div>
                             </div>
 
@@ -79,7 +79,7 @@
                                 </div>
                                 <div class="status-info">
                                     <span class="title">INATIVO</span>
-                                    <span class="number">12</span>
+                                    <span class="number" id="dash-inativos">--</span>
                                 </div>
                             </div>
                         </div>
@@ -93,7 +93,7 @@
                         <div class="dados-header d-flex justify-content-between align-items-start">
                             <div class="d-flex align-items-baseline">
                                 <h5>DADOS</h5>
-                                <span class="periodo">últimos 15 dias...</span>
+                                <span class="periodo">Estatísticas Globais</span>
                             </div>
                             <span class="instrucao">clique na seta para visualizar</span>
                         </div>
@@ -101,17 +101,17 @@
                         <div class="row flex-grow-1 align-items-center">
                             
                             <div class="col-6 d-flex flex-column align-items-center">
-                                <span class="data-large-number">0</span>
-                                <a href="dados-inseridos.html" class="dash-text-link mt-2">
-                                    Dados Inseridos 
+                                <span class="data-large-number" id="dash-aulas">--</span>
+                                <a href="presenca.html" class="dash-text-link mt-2">
+                                    Aulas Ministradas 
                                     <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
                                 </a>
                             </div>
 
                             <div class="col-6 d-flex flex-column align-items-center">
-                                <span class="data-large-number">0</span>
-                                <a href="dados-atualizados.html" class="dash-text-link mt-2">
-                                    Dados Atualizados 
+                                <span class="data-large-number" id="dash-total-alunos">--</span>
+                                <a href="Alunos/consultaAluno.html" class="dash-text-link mt-2">
+                                    Total de Alunos 
                                     <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
                                 </a>
                             </div>
@@ -127,6 +127,6 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="assets/js/main.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>
