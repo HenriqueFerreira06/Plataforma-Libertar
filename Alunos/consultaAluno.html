@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localizar Aluno - Plataforma Libertar</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="dashboard-body no-scroll"> 
+    <div class="wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-logo-area">
+                <img src="../assets/img/libertar-logo.jpg" alt="Logo Libertar">
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="../dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
+                
+                <li class="dropdown-hover prof-admin-only">
+                    <a href="javascript:void(0)" class="active"><i class="bi bi-people-fill"></i> Alunos</a>
+                    <ul class="submenu">
+                        <li class="admin-only"><a href="novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+                        <li class="prof-admin-only"><a href="consultaAluno.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+                        <li class="prof-admin-only"><a href="consultaTurma.html"><i class="bi bi-collection"></i> Localizar Turma</a></li>
+                        <li class="admin-only"><a href="transferenciaAluno.html"><i class="bi bi-arrow-left-right"></i> Transferência de Polo</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown-hover prof-admin-only">
+                    <a href="javascript:void(0)"><i class="bi bi-calendar-check-fill"></i> Presença</a>
+                    <ul class="submenu">
+                        <li class="admin-only"><a href="../presenca.html"><i class="bi bi-journal-plus"></i> Lançar Chamada</a></li>
+                        <li class="prof-admin-only"><a href="../Administração/historicoChamadas.html"><i class="bi bi-journal-text"></i> Histórico de Aulas</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown-hover admin-only">
+                    <a href="javascript:void(0)">
+                        <i class="bi bi-gear-fill"></i> Administração
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="../Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
+                        <li><a href="../Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
+                        <li><a href="../Administração/consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
+                        <li><a href="../Administração/consultaPolo.html"><i class="bi bi-building"></i> Consultar Polos</a></li>
+                    </ul>
+                </li>
+                
+                <li class="mt-auto"><a href="../index.html" class="logout-link"><i class="bi bi-box-arrow-left"></i> Sair</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            
+            <h1 class="user-greeting">LOCALIZAR ALUNO</h1>
+
+            <div class="dash-card d-flex flex-column">
+                
+                <div class="row g-2 mb-4 custom-form d-flex align-items-end">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control dash-input" id="busca-nome" placeholder="Buscar por Nome ou CPF...">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select dash-input dynamic-polo-select" id="filtro-polo">
+                            <option selected value="todos">Todos os Polos</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select dash-input" id="filtro-turma">
+                            <option selected value="todos">Todas as Turmas</option>
+                            <option value="Turma A - Manhã">Turma A - Manhã</option>
+                            <option value="Turma B - Tarde">Turma B - Tarde</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select dash-input" id="filtro-status">
+                            <option selected value="todos">Status</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container flex-grow-1">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Nome Completo</th>
+                                <th>Polo</th>
+                                <th>Turma</th>
+                                <th>Status</th>
+                                <th class="admin-only">Ações</th> </tr>
+                        </thead>
+                        <tbody id="tabela-alunos">
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    Carregando base de dados...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <div class="support-footer">
+        <strong>Suporte Libertar</strong>
+        <span><i class="bi bi-envelope"></i> libertarpelaeducacao@gmail.com</span>
+        <span><i class="bi bi-whatsapp"></i> (11) 97190-3898</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../assets/js/main.js"></script>
+</body>
+</html>

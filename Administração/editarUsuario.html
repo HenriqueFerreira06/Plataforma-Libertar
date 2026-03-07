@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuário - Plataforma Libertar</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="dashboard-body no-scroll"> 
+    <div class="wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-logo-area">
+                <img src="../assets/img/libertar-logo.jpg" alt="Logo Libertar">
+            </div>
+
+           <ul class="sidebar-menu">
+    <li><a href="../dashboard.html"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
+    
+    <li class="dropdown-hover prof-admin-only">
+        <a href="javascript:void(0)"><i class="bi bi-people-fill"></i> Alunos</a>
+        <ul class="submenu">
+            <li class="admin-only"><a href="../Alunos/novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+            <li class="prof-admin-only"><a href="../Alunos/consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+        </ul>
+    </li>
+
+    <li class="prof-only"><a href="../presenca.html"><i class="bi bi-calendar-check-fill"></i> Presença</a></li>
+
+    <li class="dropdown-hover admin-only">
+        <a href="javascript:void(0)">
+            <i class="bi bi-gear-fill"></i> Administração
+        </a>
+        <ul class="submenu" style="max-height: 250px;">
+            <li><a href="../Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
+            <li><a href="../Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
+            <li><a href="../Administração/consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
+            <li><a href="../Administração/consultaPolo.html"><i class="bi bi-building"></i> Consultar Polos</a></li>
+            <li><a href="../Administração/historicoChamadas.html"><i class="bi bi-journal-text"></i> Histórico de Chamadas</a></li>
+        </ul>
+    </li>
+    
+    <li class="mt-auto text-center" style="font-size: 0.8rem; color: var(--text-light); line-height: 1.6; padding: 15px 0; border-top: 1px solid rgba(255,255,255,0.05); cursor: default;">
+        <span style="font-weight: bold; color: var(--side-logo-bg); text-transform: uppercase; font-size: 0.75rem;">Suporte Libertar</span><br>
+        <i class="bi bi-envelope"></i> libertarpelaeducacao@gmail.com<br>
+        <i class="bi bi-whatsapp"></i> (11) 97190-3898
+    </li>
+
+    <li><a href="../index.html" class="logout-link"><i class="bi bi-box-arrow-left"></i> Sair</a></li>
+</ul>
+        </aside>
+
+        <main class="main-content">
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="user-greeting mb-0">PERFIL DO FUNCIONÁRIO</h1>
+                <a href="consultaUsuario.html" class="btn btn-cancelar"><i class="bi bi-arrow-left"></i> Voltar</a>
+            </div>
+
+            <div class="dash-card d-flex flex-column justify-content-between">
+                
+                <form id="form-editar-usuario" class="custom-form flex-grow-1 d-flex flex-column">
+                    <input type="hidden" id="edit-id-usuario">
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" id="edit-nome-usuario" class="form-control dash-input" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">CPF</label>
+                            <input type="text" id="edit-cpf-usuario" class="form-control dash-input" maxlength="14" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">E-mail (Apenas Contato)</label>
+                            <input type="email" id="edit-email-usuario" class="form-control dash-input" required title="A alteração aqui não muda o login original no Firebase Auth">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cargo / Função</label>
+                            <input type="text" id="edit-cargo-usuario" class="form-control dash-input" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Celular</label>
+                            <input type="tel" id="edit-celular-usuario" class="form-control dash-input" maxlength="15">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Nível de Acesso</label>
+                            <select id="edit-acesso-usuario" class="form-select dash-input" required>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Professor">Professor</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Polo Vinculado</label>
+                            <select id="edit-polo-usuario" class="form-select dash-input dynamic-polo-select" required>
+                                <option value="" selected disabled>Carregando polos...</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Status da Conta</label>
+                            <select id="edit-status-usuario" class="form-select dash-input fw-bold" required>
+                                <option value="ativo" class="text-success">ATIVO</option>
+                                <option value="inativo" class="text-danger">INATIVO</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-auto pt-4" style="border-top: 1px solid rgba(89, 84, 79, 0.2);">
+                        <button type="button" id="btn-excluir-usuario" class="btn btn-danger px-4" style="border-radius: 0; font-weight: bold;"><i class="bi bi-trash3-fill"></i> Excluir Registro</button>
+                        <button type="submit" id="btn-salvar-edicao-usuario" class="btn btn-salvar px-5">SALVAR ALTERAÇÕES</button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="../assets/js/main.js"></script>
+</body>
+</html>
