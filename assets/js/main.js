@@ -540,6 +540,7 @@ const displayInativos = document.getElementById('dash-inativos');
 const displayAulas = document.getElementById('dash-aulas');
 const displayTotalAlunos = document.getElementById('dash-total-alunos');
 const alunoDashboardCards = document.getElementById('aluno-dashboard-cards');
+const profDashboardCards = document.getElementById('prof-dashboard-cards');
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -547,7 +548,7 @@ onAuthStateChanged(auth, async (user) => {
             let nomeExibicao = "";
             let cargoUsuario = "Aluno"; 
             let turmaAlunoLogado = ""; 
-            let dadosCompletosLogados = null; // Variável para armazenar dados pessoais do Aluno
+            let dadosCompletosLogados = null;
             
             const docFuncSnap = await getDoc(doc(db, "funcionarios", user.uid));
             
@@ -586,7 +587,7 @@ onAuthStateChanged(auth, async (user) => {
                     if (adminDashboardCards) adminDashboardCards.style.display = 'none';
                     if (alunoDashboardCards) alunoDashboardCards.style.display = 'flex';
                     carregarEstatisticasAluno(user.uid, turmaAlunoLogado);
-                    preencherDadosAluno(dadosCompletosLogados); // Preenche formulário visual do aluno
+                    preencherDadosAluno(dadosCompletosLogados); 
                 }
             } 
             // PERFIL: PROFESSOR (APENAS VISUALIZAÇÃO)
@@ -598,8 +599,7 @@ onAuthStateChanged(auth, async (user) => {
                     'administração/consultausuario', 'administração/consultapolo', 
                     'administração/editarchamada', 'administração/editarpolo', 
                     'administração/editarusuario', 'alunos/novoaluno', 
-                    'alunos/editaraluno', 'alunos/transferenciaaluno', 
-                    'presenca.html' 
+                    'alunos/editaraluno', 'alunos/transferenciaaluno'
                 ];
                 
                 const isProibido = rotasProibidas.some(rota => pathAtual.includes(rota));
@@ -613,6 +613,9 @@ onAuthStateChanged(auth, async (user) => {
                     if (alunoDashboardCards) alunoDashboardCards.style.display = 'none';
                     if (adminDashboardCards) adminDashboardCards.style.display = 'flex';
                     if (displayAtivos) carregarEstatisticasDashboard();
+
+                    if (profDashboardCards) profDashboardCards.style.display = 'block';
+                    preencherDadosProfessor(dadosCompletosLogados);
                 }
             }
             // PERFIL: ADMINISTRADOR / COORDENADOR
@@ -623,6 +626,9 @@ onAuthStateChanged(auth, async (user) => {
                     if (alunoDashboardCards) alunoDashboardCards.style.display = 'none';
                     if (adminDashboardCards) adminDashboardCards.style.display = 'flex';
                     if (displayAtivos) carregarEstatisticasDashboard();
+
+                    if (profDashboardCards) profDashboardCards.style.display = 'block';
+                    preencherDadosProfessor(dadosCompletosLogados);
                 }
             }
 
@@ -654,6 +660,31 @@ function preencherDadosAluno(dados) {
     if(elCpf) elCpf.value = dados.cpf || '-';
     if(elPolo) elPolo.value = dados.polo || '-';
     if(elTurma) elTurma.value = dados.turma || '-';
+}
+
+function preencherDadosProfessor(dados) {
+    if(!dados) return;
+    const elNome = document.getElementById('prof-dados-nome');
+    const elEmail = document.getElementById('prof-dados-email');
+    const elCpf = document.getElementById('prof-dados-cpf');
+    const elCelular = document.getElementById('prof-dados-celular');
+    const elPolo = document.getElementById('prof-dados-polo');
+    const elData = document.getElementById('prof-dados-data');
+
+    if(elNome) elNome.value = dados.nome_completo || '';
+    if(elEmail) elEmail.value = dados.email || '';
+    if(elCpf) elCpf.value = dados.cpf || '';
+    if(elCelular) elCelular.value = dados.celular || '';
+    if(elPolo) elPolo.value = dados.polo || '';
+    if(elData) {
+        if (dados.data_cadastro && typeof dados.data_cadastro.toDate === 'function') {
+            elData.value = dados.data_cadastro.toDate().toLocaleDateString('pt-BR');
+        } else if (typeof dados.data_cadastro === 'string') {
+            elData.value = dados.data_cadastro;
+        } else {
+            elData.value = '-';
+        }
+    }
 }
 
 async function carregarEstatisticasDashboard() {
@@ -1452,6 +1483,62 @@ if (tabelaTurma) {
             } else {
                 tabelaTurma.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger">Erro ao carregar a lista.</td></tr>';
             }
+        }
+    });
+}
+
+// ==========================================
+// MÓDULO 17: EDIÇÃO DE DADOS PRÓPRIOS (PERFIL)
+// ==========================================
+const btnAbrirEdicao = document.getElementById('btn-edit-meus-dados');
+const containerBotoes = document.getElementById('container-btn-salvar-meus-dados');
+const formMeusDados = document.getElementById('form-meus-dados');
+
+if (btnAbrirEdicao) {
+    btnAbrirEdicao.addEventListener('click', () => {
+        document.getElementById('prof-dados-nome').disabled = false;
+        document.getElementById('prof-dados-email').disabled = false;
+        document.getElementById('prof-dados-cpf').disabled = false;
+        document.getElementById('prof-dados-celular').disabled = false;
+        
+        containerBotoes.style.display = 'block';
+        btnAbrirEdicao.style.display = 'none';
+    });
+}
+
+const btnCancelarEdicao = document.getElementById('btn-cancelar-meus-dados');
+if (btnCancelarEdicao) {
+    btnCancelarEdicao.addEventListener('click', () => {
+        window.location.reload(); 
+    });
+}
+
+if (formMeusDados) {
+    formMeusDados.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) return;
+
+        const btnSalvar = document.getElementById('btn-salvar-meus-dados');
+        btnSalvar.innerText = "SALVANDO...";
+        btnSalvar.disabled = true;
+
+        const novosDados = {
+            nome_completo: document.getElementById('prof-dados-nome').value,
+            email: document.getElementById('prof-dados-email').value,
+            cpf: document.getElementById('prof-dados-cpf').value,
+            celular: document.getElementById('prof-dados-celular').value
+        };
+
+        try {
+            await updateDoc(doc(db, "funcionarios", user.uid), novosDados);
+            alert("Seus dados foram atualizados com sucesso!");
+            window.location.reload();
+        } catch (error) {
+            console.error("Erro ao atualizar perfil:", error);
+            alert("Erro ao salvar alterações: " + error.message);
+            btnSalvar.innerText = "Salvar Alterações";
+            btnSalvar.disabled = false;
         }
     });
 }
