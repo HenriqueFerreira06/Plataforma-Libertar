@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Plataforma Libertar</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="dashboard-body">
+
+    <div class="wrapper">
+        
+        <aside class="sidebar">
+            <div class="sidebar-logo-area">
+                <img src="assets/img/libertar-logo.jpg" alt="Logo Libertar">
+            </div>
+
+            <ul class="sidebar-menu">
+                <li><a href="dashboard.html" class="active"><i class="bi bi-grid-1x2-fill"></i> Início</a></li>
+                
+                <li class="dropdown-hover prof-admin-only">
+                    <a href="javascript:void(0)"><i class="bi bi-people-fill"></i> Alunos</a>
+                    <ul class="submenu">
+                        <li class="admin-only"><a href="Alunos/novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
+                        <li class="prof-admin-only"><a href="Alunos/consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+                        <li class="prof-admin-only"><a href="Alunos/consultaTurma.html"><i class="bi bi-collection"></i> Localizar Turma</a></li>
+                        <li class="admin-only"><a href="Alunos/transferenciaAluno.html"><i class="bi bi-arrow-left-right"></i> Transferência de Polo</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown-hover prof-admin-only">
+                    <a href="javascript:void(0)"><i class="bi bi-calendar-check-fill"></i> Presença</a>
+                    <ul class="submenu">
+                        <li class="admin-only"><a href="presenca.html"><i class="bi bi-journal-plus"></i> Lançar Chamada</a></li>
+                        <li class="prof-admin-only"><a href="Administração/historicoChamadas.html"><i class="bi bi-journal-text"></i> Histórico de Aulas</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown-hover admin-only">
+                    <a href="javascript:void(0)">
+                        <i class="bi bi-gear-fill"></i> Administração
+                    </a>
+                    <ul class="submenu">
+                        <li><a href="Administração/cadastroPolo.html"><i class="bi bi-building-add"></i> Novo Polo</a></li>
+                        <li><a href="Administração/cadastroUsuario.html"><i class="bi bi-person-add"></i> Novo Usuário</a></li>
+                        <li><a href="Administração/consultaUsuario.html"><i class="bi bi-search"></i> Consultar Usuários</a></li>
+                        <li><a href="Administração/consultaPolo.html"><i class="bi bi-building"></i> Consultar Polos</a></li>
+                    </ul>
+                </li>
+                
+                <li class="mt-auto"><a href="index.html" class="logout-link"><i class="bi bi-box-arrow-left"></i> Sair</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            
+            <h1 class="user-greeting" id="user-greeting-display">OLÁ, CARREGANDO...</h1>
+
+            <div class="row g-4" id="admin-dashboard-cards" style="display: none;">
+                <div class="col-md-6">
+                    <div class="dash-card d-flex flex-column">
+                        <div class="dados-header">
+                            <h5>Total de registros</h5>
+                        </div>
+                        <div class="d-flex justify-content-around align-items-center flex-grow-1 w-100">
+                            <div class="status-group">
+                                <div class="square-icon box-ativo">
+                                    <i class="bi bi-person-check-fill"></i>
+                                </div>
+                                <div class="status-info">
+                                    <span class="title">ATIVO</span>
+                                    <span class="number" id="dash-ativos">--</span>
+                                </div>
+                            </div>
+                            <div class="status-group">
+                                <div class="square-icon box-inativo">
+                                    <i class="bi bi-person-dash-fill"></i>
+                                </div>
+                                <div class="status-info">
+                                    <span class="title">INATIVO</span>
+                                    <span class="number" id="dash-inativos">--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="dash-card d-flex flex-column">
+                        <div class="dados-header d-flex justify-content-between align-items-start">
+                            <div class="d-flex align-items-baseline">
+                                <h5>DADOS</h5>
+                                <span class="periodo">Estatísticas Globais</span>
+                            </div>
+                            <span class="instrucao">clique na seta para visualizar</span>
+                        </div>
+                        <div class="row flex-grow-1 align-items-center">
+                            <div class="col-6 d-flex flex-column align-items-center">
+                                <span class="data-large-number" id="dash-aulas">--</span>
+                                <a href="Administração/historicoChamadas.html" class="dash-text-link mt-2">
+                                    Aulas Ministradas 
+                                    <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
+                                </a>
+                            </div>
+                            <div class="col-6 d-flex flex-column align-items-center">
+                                <span class="data-large-number" id="dash-total-alunos">--</span>
+                                <a href="Alunos/consultaAluno.html" class="dash-text-link mt-2">
+                                    Total de Alunos 
+                                    <div class="arrow-square"><i class="bi bi-arrow-right-short"></i></div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4" id="aluno-dashboard-cards" style="display: none;">
+                <div class="col-md-4">
+                    <div class="dash-card d-flex flex-column justify-content-center align-items-center text-center h-100">
+                        <h5 class="mb-4" style="color: var(--side-logo-bg); font-weight: bold; text-transform: uppercase;">Minha Frequência</h5>
+                        
+                        <div style="width: 150px; height: 150px; border-radius: 50%; border: 10px solid var(--ativo-bg); display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                            <h2 id="dash-aluno-porcentagem" style="color: var(--text-main); font-weight: bold; margin: 0; font-size: 2.5rem;">--%</h2>
+                        </div>
+                        
+                        <div class="w-100 mt-3 text-start px-2">
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-muted">Aulas Ministradas:</span> 
+                                <span id="dash-aluno-total-aulas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-2 d-flex justify-content-between border-bottom pb-1">
+                                <span class="text-success fw-bold">Presenças (P):</span> 
+                                <span id="dash-aluno-presencas" class="fw-bold fs-5">0</span>
+                            </p>
+                            <p class="mb-0 d-flex justify-content-between">
+                                <span class="text-danger fw-bold">Faltas (F):</span> 
+                                <span id="dash-aluno-faltas" class="fw-bold fs-5">0</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="dash-card d-flex flex-column h-100">
+                        <h5 class="mb-4" style="color: var(--side-logo-bg); font-weight: bold; text-transform: uppercase;">Meus Dados Cadastrais</h5>
+                        
+                        <form class="custom-form flex-grow-1">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-12">
+                                    <label class="form-label">Nome Completo</label>
+                                    <input type="text" class="form-control dash-input" id="aluno-dados-nome" disabled placeholder="Carregando...">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">E-mail</label>
+                                    <input type="email" class="form-control dash-input" id="aluno-dados-email" disabled placeholder="Carregando...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">CPF</label>
+                                    <input type="text" class="form-control dash-input" id="aluno-dados-cpf" disabled placeholder="Carregando...">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Polo Matriculado</label>
+                                    <input type="text" class="form-control dash-input" id="aluno-dados-polo" disabled placeholder="Carregando...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Turma Atual</label>
+                                    <input type="text" class="form-control dash-input" id="aluno-dados-turma" disabled placeholder="Carregando...">
+                                </div>
+                            </div>
+                        </form>
+
+                        <div class="mt-auto pt-3 text-end" style="border-top: 1px solid rgba(89, 84, 79, 0.2);">
+                            <span class="text-muted" style="font-size: 0.85rem;"><i class="bi bi-info-circle"></i> Para solicitar alteração de dados, procure a coordenação.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <div class="support-footer">
+        <strong>Suporte Libertar</strong>
+        <span><i class="bi bi-envelope"></i> libertarpelaeducacao@gmail.com</span>
+        <span><i class="bi bi-whatsapp"></i> (11) 97190-3898</span>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>

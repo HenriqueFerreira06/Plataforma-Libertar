@@ -1,0 +1,475 @@
+/* =========================================
+    LAYOUT DO SISTEMA - DASHBOARD (PRÉ-ALPHA)
+========================================= */
+
+/* Variáveis de Cores */
+:root {
+    --dash-bg: #bab2a7;           
+    --card-bg: #ddd6cd;           
+    --text-main: #545454;         
+    
+    --side-logo-bg: #59544f;      
+    --side-bg: #ddd6cd;           
+    --side-active-bg: #8f8982;    
+    --side-active-text: #ddd6cd;  
+    --side-text: #625c55;         
+    
+    --ativo-bg: #52a1bd;          
+    --ativo-icon: #70d7fb;        
+    --inativo-bg: #c24d4f;        
+    --inativo-icon: #ff595c;      
+}
+
+* {
+    font-family: 'Codec Pro', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+body.dashboard-body {
+    background-color: var(--dash-bg);
+    color: var(--text-main);
+    /* Zoom 75% aplicado conforme solicitado */
+    zoom: 75%;
+}
+
+.user-greeting, .sidebar-menu li a, .status-info span.title, .dados-header h5, .dash-text-link, .periodo, .instrucao {
+    font-weight: normal !important;
+}
+
+.status-info span.number, .data-large-number {
+    font-weight: bold !important;
+}
+
+.wrapper {
+    display: flex;
+    min-height: 133.33vh;
+}
+
+/* =========================================
+    SIDEBAR (MENU LATERAL)
+========================================= */
+.sidebar {
+    width: 260px;
+    background-color: var(--side-bg);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.25);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-logo-area {
+    background-color: var(--side-logo-bg);
+    padding: 20px;
+    text-align: center;
+}
+
+.sidebar-logo-area img { max-width: 140px; }
+
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0; 
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; 
+}
+
+.sidebar-menu li {
+    width: 100%;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: var(--side-text);
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.sidebar-menu li a i {
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.sidebar-menu li a.active {
+    background-color: var(--side-active-bg);
+    color: var(--side-active-text);
+}
+
+.sidebar-menu li a:hover:not(.active) {
+    background-color: rgba(143, 137, 130, 0.2); 
+}
+
+.sidebar-menu li a.logout-link:hover {
+    background-color: #c24d4f !important;
+    color: white !important;
+}
+
+/* =========================================
+    SUBMENU (ACCORDION HOVER)
+========================================= */
+.dropdown-hover {
+    overflow: hidden;
+}
+
+.submenu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    background-color: rgba(0, 0, 0, 0.05);
+    max-height: 0; /* Escondido */
+    transition: max-height 0.4s ease-in-out; /* Animação de expansão */
+}
+
+/* Expande ao passar o mouse, empurrando os itens de baixo */
+.dropdown-hover:hover .submenu {
+    max-height: 400px; /* Aumentado para acomodar menus grandes */
+}
+
+.submenu li a {
+    padding: 12px 15px 12px 45px !important; /* Espaçamento ajustado */
+    font-size: 0.9rem !important;
+    transition: 0.2s;
+    white-space: nowrap; /* Impede quebra de linha em textos grandes */
+}
+
+.submenu li a i {
+    font-size: 1rem;
+    margin-right: 10px;
+}
+
+.submenu li a:hover {
+    background-color: rgba(143, 137, 130, 0.15) !important;
+}
+
+/* =========================================
+    CONTEÚDO PRINCIPAL (DASHBOARD)
+========================================= */
+.main-content {
+    flex-grow: 1;
+    padding: 40px 60px; 
+    display: flex;
+    flex-direction: column;
+}
+
+.user-greeting {
+    color: var(--text-main);
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+    text-align: right; 
+    text-transform: uppercase;
+}
+
+.dash-card {
+    background-color: var(--card-bg);
+    border-radius: 0; 
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    height: 100%;
+}
+
+/* CARD 1: ALUNOS */
+.status-group {
+    display: flex;
+    align-items: flex-start;
+}
+
+.square-icon {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    border-radius: 0; 
+}
+
+.box-ativo { background-color: var(--ativo-bg); color: var(--ativo-icon); }
+.box-inativo { background-color: var(--inativo-bg); color: var(--inativo-icon); }
+
+.status-info {
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    line-height: 1; 
+    align-items: center; 
+}
+
+.status-info span.title {
+    font-size: 1.1rem; 
+    color: var(--text-main);
+    margin-bottom: 5px;
+    margin-top: 2px;
+}
+
+.status-info span.number {
+    font-size: 2.2rem; 
+    color: var(--text-main);
+}
+
+/* CARD 2: DADOS */
+.dados-header {
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.dados-header h5 {
+    color: var(--text-main);
+    margin: 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+.dados-header .periodo {
+    font-size: 0.8rem;
+    color: var(--text-main);
+    opacity: 0.7;
+    margin-left: 10px;
+}
+
+.dados-header .instrucao {
+    font-size: 0.75rem;
+    color: var(--text-main);
+    opacity: 0.7;
+}
+
+.data-large-number {
+    font-size: 3rem;
+    color: var(--text-main);
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.dash-text-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 1rem;
+    margin-bottom: 15px;
+    transition: 0.2s;
+    width: fit-content; 
+}
+
+.dash-text-link:hover { opacity: 0.8; }
+
+.arrow-square {
+    width: 24px;
+    height: 24px;
+    background-color: #59544f;
+    color: var(--card-bg); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 8px;
+    font-size: 1.1rem;
+}
+
+/* =========================================
+   ESTILOS GERAIS PARA AS NOVAS TELAS
+========================================= */
+
+/* Trava o scroll da tela */
+body.no-scroll {
+    overflow: hidden;
+    height: 133.33vh; /* Compensação exata do zoom de 75% */
+}
+
+/* Textos e Inputs */
+.custom-form .form-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--side-logo-bg); /* Usa o marrom escuro da paleta */
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.dash-input {
+    background-color: #ede7df; /* Destaca levemente o input do card */
+    border: 1px solid #c2bbb0;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    border-radius: 4px;
+}
+
+.dash-input:focus {
+    background-color: #f5f1ea;
+    border-color: var(--side-logo-bg);
+    box-shadow: none;
+    outline: 1px solid var(--side-logo-bg);
+}
+
+.dash-input:disabled {
+    background-color: #e0d9d0;
+    opacity: 0.7;
+}
+
+/* Botões Form */
+.btn-salvar {
+    background-color: var(--side-logo-bg);
+    color: var(--card-bg);
+    font-weight: bold;
+    padding: 8px 30px;
+    border: none;
+    border-radius: 0px;
+    transition: 0.2s;
+}
+
+.btn-salvar:hover {
+    background-color: #433f3a;
+    color: white;
+}
+
+.btn-cancelar {
+    background-color: transparent;
+    color: var(--side-logo-bg);
+    font-weight: bold;
+    padding: 8px 30px;
+    border: 1px solid var(--side-logo-bg);
+    border-radius: 0px;
+    transition: 0.2s;
+}
+
+.btn-cancelar:hover {
+    background-color: rgba(89, 84, 79, 0.1);
+    color: var(--side-logo-bg);
+}
+
+/* =========================================
+   ESTILOS DE TABELA (LOCALIZAR ALUNO)
+========================================= */
+.table-container {
+    overflow-y: auto;
+    max-height: calc(100% - 70px); /* Deixa espaço para os filtros em cima */
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.custom-table th {
+    background-color: var(--side-logo-bg);
+    color: var(--side-active-text);
+    padding: 12px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: normal;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.custom-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(89, 84, 79, 0.15);
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.custom-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+}
+
+/* Badges de Status na Tabela */
+.badge-status {
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: white;
+}
+.status-ativo { background-color: var(--ativo-bg); }
+.status-inativo { background-color: var(--inativo-bg); }
+
+/* Botões de Ação na Tabela */
+.btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--side-logo-bg);
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.2s;
+    margin: 0 3px;
+}
+
+.btn-icon:hover {
+    color: var(--ativo-bg);
+}
+
+/* =========================================
+   ESTILOS DE PRESENÇA (CHECKBOX QUADRADO)
+========================================= */
+.aula-checkbox {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #8f8982;
+    border-radius: 0 !important;
+    cursor: pointer;
+    background-color: transparent;
+    transition: 0.2s ease-in-out;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.aula-checkbox:checked {
+    background-color: #59544f !important;
+    border-color: #59544f !important;
+}
+
+.aula-checkbox:checked::after {
+    content: "✓";
+    font-size: 16px;
+    color: white;
+    font-weight: bold;
+}
+
+.aula-checkbox:focus {
+    box-shadow: none;
+    outline: 1px solid #59544f;
+    outline-offset: 1px;
+}
+
+/* =========================================
+   CONTROLE DE ACESSO (PERMISSÕES DA SIDEBAR)
+========================================= */
+.admin-only, 
+.prof-only, 
+.prof-admin-only {
+    display: none;
+}
+
+/* =========================================
+   RODAPÉ DE SUPORTE FIXO
+========================================= */
+.support-footer {
+    position: fixed;
+    bottom: 12px;
+    right: 60px; /* Alinhado exatamente com o limite direito dos cards */
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    gap: 20px;
+    z-index: 100;
+}
+
+.support-footer strong {
+    color: var(--side-logo-bg);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.support-footer i {
+    color: var(--side-logo-bg);
+    margin-right: 5px;
+    font-size: 1rem;
+}
