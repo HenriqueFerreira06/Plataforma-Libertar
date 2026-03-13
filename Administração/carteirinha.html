@@ -15,20 +15,20 @@
         /* ESTILOS DA CARTEIRINHA (TELA E IMPRESSÃO) */
         .carteirinha-container {
             display: flex;
-            gap: 20px;
+            gap: 40px; /* Espaço maior entre frente e verso na tela */
             flex-wrap: wrap;
             justify-content: center;
             margin-top: 20px;
         }
 
         .cartao {
-            /* TAMANHO AUMENTADO (Aprox 20% maior para melhor leitura e corte) */
+            /* TAMANHO DOBRADO (19,2 cm x 12 cm) */
             width: 192mm;
             height: 120mm;
             background: #ffffff;
             border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             position: relative;
             overflow: hidden;
             font-family: 'Montserrat', sans-serif;
@@ -41,34 +41,34 @@
 
         /* ================= FRENTE ================= */
         .frente-left {
-            width: 31mm; /* Aumentado proporcionalmente */
+            width: 62mm; /* Dobrado */
             background-color: var(--side-logo-bg); /* Laranja Libertar */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 4mm;
+            padding: 8mm; /* Dobrado */
             color: white;
         }
 
         .cart-photo {
-            width: 23mm;
-            height: 30mm; /* Mantém a proporção de foto 3x4 */
+            width: 46mm; /* Dobrado */
+            height: 60mm; /* Dobrado */
             background-color: #f8f9fa;
-            border: 2px solid #ffffff;
-            border-radius: 4px;
+            border: 3px solid #ffffff;
+            border-radius: 6px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #adb5bd;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin-bottom: 2.5mm;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 5mm; /* Dobrado */
         }
 
         .frente-right {
             flex: 1;
             background-color: #ffffff; 
-            padding: 4mm 5mm;
+            padding: 8mm 10mm; /* Dobrado */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -78,9 +78,9 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid var(--side-logo-bg);
-            padding-bottom: 1.5mm;
-            margin-bottom: 2.5mm;
+            border-bottom: 4px solid var(--side-logo-bg); /* Dobrado */
+            padding-bottom: 3mm; /* Dobrado */
+            margin-bottom: 5mm; /* Dobrado */
         }
 
         .header-frente-text {
@@ -89,7 +89,7 @@
 
         .header-frente-text h6 {
             margin: 0;
-            font-size: 10px; /* Fonte aumentada */
+            font-size: 20px; /* Dobrado */
             font-weight: 900;
             color: var(--side-logo-bg);
             text-transform: uppercase;
@@ -98,35 +98,35 @@
 
         .header-frente-text p {
             margin: 0;
-            font-size: 6px; /* Fonte aumentada */
+            font-size: 12px; /* Dobrado */
             font-weight: bold;
             color: #000;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px; /* Dobrado */
         }
 
         .header-frente img {
-            height: 10.5mm; /* Logo maior */
-            max-width: 28mm;
+            height: 21mm; /* Dobrado */
+            max-width: 56mm; /* Dobrado */
             object-fit: contain;
-            margin-left: 2mm;
+            margin-left: 4mm; /* Dobrado */
         }
 
         .aluno-nome {
-            font-size: 12px; /* Fonte aumentada */
+            font-size: 24px; /* Dobrado */
             font-weight: 900;
             text-transform: uppercase;
             color: #000;
-            margin-bottom: 2.5mm;
+            margin-bottom: 5mm; /* Dobrado */
             line-height: 1.1;
-            max-height: 26px; 
+            max-height: 52px; /* Dobrado */
             overflow: hidden;
         }
 
         .dados-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2mm 4mm;
+            gap: 4mm 8mm; /* Dobrado */
         }
 
         .dado-item {
@@ -135,15 +135,15 @@
         }
 
         .dado-label {
-            font-size: 6px; /* Fonte aumentada */
+            font-size: 12px; /* Dobrado */
             color: #000;
             font-weight: bold;
             text-transform: uppercase;
-            margin-bottom: 0.5mm;
+            margin-bottom: 1mm; /* Dobrado */
         }
 
         .dado-valor {
-            font-size: 8.5px; /* Fonte aumentada */
+            font-size: 17px; /* Dobrado */
             color: #000;
             font-weight: 900;
             white-space: nowrap;
@@ -160,16 +160,16 @@
             background-color: var(--side-logo-bg);
             color: white;
             text-align: center;
-            font-size: 10px; /* Fonte aumentada */
+            font-size: 20px; /* Dobrado */
             font-weight: 900;
-            padding: 3mm 0;
-            letter-spacing: 1px;
+            padding: 6mm 0; /* Dobrado */
+            letter-spacing: 2px; /* Dobrado */
             text-transform: uppercase;
         }
 
         .verso-body {
-            padding: 5mm 6mm;
-            font-size: 8.5px; /* Fonte aumentada */
+            padding: 10mm 12mm; /* Dobrado */
+            font-size: 17px; /* Dobrado */
             line-height: 1.5;
             color: #000;
             flex: 1;
@@ -179,13 +179,13 @@
         }
 
         .assinatura-box {
-            border-top: 1px solid #000;
+            border-top: 2px solid #000; /* Dobrado */
             width: 70%;
             margin: 0 auto;
             text-align: center;
-            padding-top: 2mm;
+            padding-top: 4mm; /* Dobrado */
             font-weight: bold;
-            font-size: 8px; /* Fonte aumentada */
+            font-size: 16px; /* Dobrado */
             color: #000;
         }
 
@@ -201,12 +201,12 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center; 
-                gap: 15mm; 
+                gap: 20mm; /* Espaço para recorte na folha A4 */
                 padding: 10mm;
             }
             .cartao {
                 box-shadow: none; 
-                border: 1px dashed #999; 
+                border: 2px dashed #999; 
                 margin: 0;
                 page-break-inside: avoid;
             }
@@ -292,11 +292,11 @@
                     <div class="cartao cart-frente">
                         <div class="frente-left">
                             <div class="cart-photo">
-                                <i class="bi bi-person-fill" style="font-size: 45px;"></i>
+                                <i class="bi bi-person-fill" style="font-size: 90px;"></i>
                             </div>
-                            <div style="font-size: 6px; font-weight: bold; margin-bottom: 2mm;">COLAR FOTO 3x4</div>
-                            <div style="font-size: 7px; font-weight: 900; letter-spacing: 0.5px;">VÁLIDA ATÉ</div>
-                            <div style="font-size: 10px; font-weight: 900;" id="cart-validade">12/2026</div>
+                            <div style="font-size: 12px; font-weight: bold; margin-bottom: 4mm;">COLAR FOTO 3x4</div>
+                            <div style="font-size: 14px; font-weight: 900; letter-spacing: 1px;">VÁLIDA ATÉ</div>
+                            <div style="font-size: 20px; font-weight: 900;" id="cart-validade">12/2026</div>
                         </div>
 
                         <div class="frente-right">
@@ -341,18 +341,18 @@
                         </div>
                         <div class="verso-body">
                             <div>
-                                <p style="margin-bottom: 1.5mm;"><strong>1.</strong> Este documento é de uso pessoal e intransferível.</p>
-                                <p style="margin-bottom: 1.5mm;"><strong>2.</strong> Válido como identificação estudantil nas dependências do cursinho Libertar e parceiros credenciados.</p>
+                                <p style="margin-bottom: 3mm;"><strong>1.</strong> Este documento é de uso pessoal e intransferível.</p>
+                                <p style="margin-bottom: 3mm;"><strong>2.</strong> Válido como identificação estudantil nas dependências do cursinho Libertar e parceiros credenciados.</p>
                                 <p style="margin-bottom: 0;"><strong>3.</strong> O uso indevido sujeitará o portador às penalidades legais.</p>
                             </div>
                             
-                            <div style="margin-top: 4mm;">
+                            <div style="margin-top: 8mm;">
                                 <div class="assinatura-box">
                                     Assinatura da Coordenação
                                 </div>
                             </div>
                             
-                            <p style="text-align: center; font-size: 6px; color: #000; margin-top: 2mm; margin-bottom: 0;">
+                            <p style="text-align: center; font-size: 10px; color: #000; margin-top: 4mm; margin-bottom: 0;">
                                 Em caso de perda, comunique à secretaria da sua unidade.
                             </p>
                         </div>
