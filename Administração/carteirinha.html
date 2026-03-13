@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../assets/css/style.css">
 
     <style>
-        /* pra mexer no estilo da carteirinha é aq */
+        /* ESTILOS DA CARTEIRINHA (TELA E IMPRESSÃO) */
         .carteirinha-container {
             display: flex;
             gap: 20px;
@@ -22,9 +22,9 @@
         }
 
         .cartao {
-            
-            width: 85.6mm;
-            height: 53.98mm;
+            /* TAMANHO AUMENTADO (Aprox 20% maior para melhor leitura e corte) */
+            width: 96mm;
+            height: 60mm;
             background: #ffffff;
             border: 1px solid #ccc;
             border-radius: 8px;
@@ -39,35 +39,36 @@
             print-color-adjust: exact;
         }
 
-       
+        /* ================= FRENTE ================= */
         .frente-left {
-            width: 28mm;
-            background-color: var(--side-logo-bg); 
+            width: 31mm; /* Aumentado proporcionalmente */
+            background-color: var(--side-logo-bg); /* Laranja Libertar */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 3mm;
+            padding: 4mm;
             color: white;
         }
 
         .cart-photo {
-            width: 20mm;
-            height: 26mm;
+            width: 23mm;
+            height: 30mm; /* Mantém a proporção de foto 3x4 */
             background-color: #f8f9fa;
             border: 2px solid #ffffff;
+            border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #adb5bd;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            margin-bottom: 2mm;
+            margin-bottom: 2.5mm;
         }
 
         .frente-right {
             flex: 1;
             background-color: #ffffff; 
-            padding: 3mm 4mm;
+            padding: 4mm 5mm;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -79,7 +80,7 @@
             align-items: flex-start;
             border-bottom: 2px solid var(--side-logo-bg);
             padding-bottom: 1.5mm;
-            margin-bottom: 2mm;
+            margin-bottom: 2.5mm;
         }
 
         .header-frente-text {
@@ -88,7 +89,7 @@
 
         .header-frente-text h6 {
             margin: 0;
-            font-size: 8px;
+            font-size: 10px; /* Fonte aumentada */
             font-weight: 900;
             color: var(--side-logo-bg);
             text-transform: uppercase;
@@ -97,7 +98,7 @@
 
         .header-frente-text p {
             margin: 0;
-            font-size: 5px;
+            font-size: 6px; /* Fonte aumentada */
             font-weight: bold;
             color: #000;
             text-transform: uppercase;
@@ -105,27 +106,27 @@
         }
 
         .header-frente img {
-            height: 9mm; 
-            max-width: 25mm;
+            height: 10.5mm; /* Logo maior */
+            max-width: 28mm;
             object-fit: contain;
             margin-left: 2mm;
         }
 
         .aluno-nome {
-            font-size: 10px;
+            font-size: 12px; /* Fonte aumentada */
             font-weight: 900;
             text-transform: uppercase;
             color: #000;
-            margin-bottom: 2mm;
+            margin-bottom: 2.5mm;
             line-height: 1.1;
-            max-height: 22px; 
+            max-height: 26px; 
             overflow: hidden;
         }
 
         .dados-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5mm 3mm;
+            gap: 2mm 4mm;
         }
 
         .dado-item {
@@ -134,7 +135,7 @@
         }
 
         .dado-label {
-            font-size: 5px;
+            font-size: 6px; /* Fonte aumentada */
             color: #000;
             font-weight: bold;
             text-transform: uppercase;
@@ -142,7 +143,7 @@
         }
 
         .dado-valor {
-            font-size: 7.5px;
+            font-size: 8.5px; /* Fonte aumentada */
             color: #000;
             font-weight: 900;
             white-space: nowrap;
@@ -150,7 +151,7 @@
             text-overflow: ellipsis;
         }
 
-        
+        /* ================= VERSO ================= */
         .cart-verso {
             flex-direction: column;
         }
@@ -159,16 +160,16 @@
             background-color: var(--side-logo-bg);
             color: white;
             text-align: center;
-            font-size: 8px;
+            font-size: 10px; /* Fonte aumentada */
             font-weight: 900;
-            padding: 2.5mm 0;
+            padding: 3mm 0;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
         .verso-body {
-            padding: 4mm 5mm;
-            font-size: 7px;
+            padding: 5mm 6mm;
+            font-size: 8.5px; /* Fonte aumentada */
             line-height: 1.5;
             color: #000;
             flex: 1;
@@ -182,13 +183,13 @@
             width: 70%;
             margin: 0 auto;
             text-align: center;
-            padding-top: 1.5mm;
+            padding-top: 2mm;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 8px; /* Fonte aumentada */
             color: #000;
         }
 
-        
+        /* REGRA MÁGICA PARA IMPRESSÃO */
         @media print {
             body * { visibility: hidden; }
             .carteirinha-print-area, .carteirinha-print-area * { visibility: visible; }
@@ -200,8 +201,8 @@
                 display: flex;
                 flex-direction: column;
                 align-items: center; 
-                gap: 10mm; 
-                padding: 5mm;
+                gap: 15mm; 
+                padding: 10mm;
             }
             .cartao {
                 box-shadow: none; 
@@ -260,7 +261,7 @@
         <main class="main-content">
             <h1 class="user-greeting mb-4">EMISSÃO DE CARTEIRINHA</h1>
 
-            <div class="dash-card mb-4 p-4">
+            <div class="dash-card mb-4 py-2 px-4">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-5">
                         <label class="form-label fw-bold">Buscar Aluno (Nome ou CPF)</label>
@@ -283,7 +284,7 @@
             <div class="dash-card flex-grow-1" id="area-carteirinha" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h5 style="color: var(--side-logo-bg); font-weight: bold; margin: 0;"><i class="bi bi-eye"></i> Visualização para Impressão</h5>
-                    <button class="btn btn-success fw-bold px-4 py-4" onclick="window.print()"><i class="bi bi-printer-fill"></i> Imprimir (Frente e Verso)</button>
+                    <button class="btn btn-success fw-bold px-4 py-2" onclick="window.print()"><i class="bi bi-printer-fill"></i> Imprimir (Frente e Verso)</button>
                 </div>
 
                 <div class="carteirinha-print-area carteirinha-container">
@@ -291,11 +292,11 @@
                     <div class="cartao cart-frente">
                         <div class="frente-left">
                             <div class="cart-photo">
-                                <i class="bi bi-person-fill" style="font-size: 40px;"></i>
+                                <i class="bi bi-person-fill" style="font-size: 45px;"></i>
                             </div>
-                            <div style="font-size: 5px; font-weight: bold; margin-bottom: 2mm;">COLAR FOTO 3x4</div>
-                            <div style="font-size: 6px; font-weight: 900; letter-spacing: 0.5px;">VÁLIDA ATÉ</div>
-                            <div style="font-size: 9px; font-weight: 900;" id="cart-validade">12/2026</div>
+                            <div style="font-size: 6px; font-weight: bold; margin-bottom: 2mm;">COLAR FOTO 3x4</div>
+                            <div style="font-size: 7px; font-weight: 900; letter-spacing: 0.5px;">VÁLIDA ATÉ</div>
+                            <div style="font-size: 10px; font-weight: 900;" id="cart-validade">12/2026</div>
                         </div>
 
                         <div class="frente-right">
@@ -351,7 +352,7 @@
                                 </div>
                             </div>
                             
-                            <p style="text-align: center; font-size: 5px; color: #000; margin-top: 2mm; margin-bottom: 0;">
+                            <p style="text-align: center; font-size: 6px; color: #000; margin-top: 2mm; margin-bottom: 0;">
                                 Em caso de perda, comunique à secretaria da sua unidade.
                             </p>
                         </div>
