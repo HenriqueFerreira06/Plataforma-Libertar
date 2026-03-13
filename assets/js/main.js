@@ -1,6 +1,3 @@
-// ==========================================
-// IMPORTAÇÕES E CONFIGURAÇÕES DE AMBIENTE (FIREBASE)
-// ==========================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, collection, getDocs, query, where, addDoc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
@@ -20,6 +17,27 @@ const db = getFirestore(app);
 
 const appCadastro = initializeApp(firebaseConfig, "AppParaCadastros");
 const authCadastro = getAuth(appCadastro);
+
+// Função Global de Reaproveitamento RBAC (Impede ícones de sumirem ao filtrar tabelas)
+window.aplicarRegrasRBAC = function() {
+    if (!window.cargoUsuarioLogado) return;
+    const cargo = window.cargoUsuarioLogado;
+    
+    if (cargo === "Professor") {
+        document.querySelectorAll('.prof-admin-only').forEach(el => {
+            if(el.tagName === 'TD' || el.tagName === 'TH') el.style.display = 'table-cell';
+            else if(el.tagName === 'A' && el.classList.contains('btn')) el.style.display = 'inline-block';
+            else el.style.display = 'block';
+        });
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    } else if (cargo === "Administrador" || cargo.includes("Coordenador")) {
+        document.querySelectorAll('.admin-only, .prof-admin-only').forEach(el => {
+            if(el.tagName === 'TD' || el.tagName === 'TH') el.style.display = 'table-cell';
+            else if(el.tagName === 'A' && el.classList.contains('btn')) el.style.display = 'inline-block';
+            else el.style.display = 'block';
+        });
+    }
+};
 
 // ==========================================
 // MÓDULO 1: AUTENTICAÇÃO E RECUPERAÇÃO DE CREDENCIAIS
@@ -114,6 +132,14 @@ if (formNovoAluno) {
         const cpf = document.getElementById('cpf').value;
         const polo = document.getElementById('polo').value;
         const turma = document.getElementById('turma').value;
+        const linkLgpd = document.getElementById('link-lgpd') ? document.getElementById('link-lgpd').value : "";
+        
+        // Coleta os novos campos
+        const nomeSocial = document.getElementById('nome-social') ? document.getElementById('nome-social').value : "";
+        const rg = document.getElementById('rg') ? document.getElementById('rg').value : "";
+        const dataNascimento = document.getElementById('nascimento') ? document.getElementById('nascimento').value : "";
+        const genero = document.getElementById('genero') ? document.getElementById('genero').value : "";
+        const celular = document.getElementById('celular') ? document.getElementById('celular').value : "";
         
         if (!validarCPF(cpf)) {
             alert("Validação pendente: O CPF informado falhou na verificação algorítmica.");
@@ -128,10 +154,16 @@ if (formNovoAluno) {
                 const userAluno = userCredential.user;
                 return setDoc(doc(db, "alunos", userAluno.uid), {
                     nome_completo: nome,
+                    nome_social: nomeSocial,
                     email: email,
                     cpf: cpf,
+                    rg: rg,
+                    data_nascimento: dataNascimento,
+                    genero: genero,
+                    celular: celular,
                     polo: polo,
                     turma: turma,
+                    link_lgpd: linkLgpd,
                     status: "ativo",
                     total_presencas: 0,
                     total_faltas: 0,
@@ -194,13 +226,15 @@ if (tabelaAlunos) {
                     <td>${aluno.polo}</td>
                     <td>${aluno.turma}</td>
                     <td><span class="badge ${aluno.status === 'ativo' ? 'bg-success' : 'bg-danger'}">${aluno.status.toUpperCase()}</span></td>
-                    <td class="admin-only">
+                    <td class="admin-only text-center">
                         <a href="editarAluno.html?id=${aluno.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Editar Metadados"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             `;
             tabelaAlunos.innerHTML += row;
         });
+        
+        if (typeof window.aplicarRegrasRBAC === 'function') setTimeout(() => window.aplicarRegrasRBAC(), 50);
     }
 
     function aplicarFiltros() {
@@ -208,7 +242,7 @@ if (tabelaAlunos) {
         if (inputBusca && inputBusca.value.trim() !== '') {
             const termo = inputBusca.value.toLowerCase();
             alunosFiltrados = alunosFiltrados.filter(aluno => 
-                aluno.nome_completo.toLowerCase().includes(termo) || 
+                (aluno.nome_completo && aluno.nome_completo.toLowerCase().includes(termo)) || 
                 (aluno.cpf && aluno.cpf.includes(termo))
             );
         }
@@ -428,13 +462,24 @@ if (formEditarAluno) {
 
             if (docSnap.exists()) {
                 const aluno = docSnap.data();
+                
+                // Preenche formulário com os novos dados adicionados
                 document.getElementById('edit-id').value = id;
-                document.getElementById('edit-nome').value = aluno.nome_completo;
-                document.getElementById('edit-email').value = aluno.email;
-                document.getElementById('edit-cpf').value = aluno.cpf;
-                document.getElementById('edit-polo').value = aluno.polo;
-                document.getElementById('edit-turma').value = aluno.turma;
-                document.getElementById('edit-status').value = aluno.status;
+                document.getElementById('edit-nome').value = aluno.nome_completo || "";
+                if(document.getElementById('edit-nome-social')) document.getElementById('edit-nome-social').value = aluno.nome_social || "";
+                document.getElementById('edit-email').value = aluno.email || "";
+                document.getElementById('edit-cpf').value = aluno.cpf || "";
+                if(document.getElementById('edit-rg')) document.getElementById('edit-rg').value = aluno.rg || "";
+                if(document.getElementById('edit-nascimento')) document.getElementById('edit-nascimento').value = aluno.data_nascimento || "";
+                if(document.getElementById('edit-genero')) document.getElementById('edit-genero').value = aluno.genero || "";
+                if(document.getElementById('edit-celular')) document.getElementById('edit-celular').value = aluno.celular || "";
+                document.getElementById('edit-polo').value = aluno.polo || "";
+                document.getElementById('edit-turma').value = aluno.turma || "";
+                document.getElementById('edit-status').value = aluno.status || "";
+                
+                if(document.getElementById('edit-link-lgpd')) {
+                    document.getElementById('edit-link-lgpd').value = aluno.link_lgpd || "";
+                }
 
                 calcularFrequenciaDoAluno(id, aluno.turma);
             } else {
@@ -497,11 +542,17 @@ if (formEditarAluno) {
         try {
             await updateDoc(doc(db, "alunos", alunoId), {
                 nome_completo: document.getElementById('edit-nome').value,
+                nome_social: document.getElementById('edit-nome-social') ? document.getElementById('edit-nome-social').value : "",
                 email: document.getElementById('edit-email').value,
                 cpf: cpfDigitado,
+                rg: document.getElementById('edit-rg') ? document.getElementById('edit-rg').value : "",
+                data_nascimento: document.getElementById('edit-nascimento') ? document.getElementById('edit-nascimento').value : "",
+                genero: document.getElementById('edit-genero') ? document.getElementById('edit-genero').value : "",
+                celular: document.getElementById('edit-celular') ? document.getElementById('edit-celular').value : "",
                 polo: document.getElementById('edit-polo').value,
                 turma: document.getElementById('edit-turma').value,
-                status: document.getElementById('edit-status').value
+                status: document.getElementById('edit-status').value,
+                link_lgpd: document.getElementById('edit-link-lgpd') ? document.getElementById('edit-link-lgpd').value : ""
             });
             alert("Transação efetuada: O documento foi modificado com sucesso.");
             window.location.href = "consultaAluno.html"; 
@@ -529,6 +580,16 @@ if (formEditarAluno) {
         });
     }
 }
+
+// Função Global para Abrir Link da LGPD
+window.abrirLinkLGPD = function() {
+    const link = document.getElementById('edit-link-lgpd') ? document.getElementById('edit-link-lgpd').value : null;
+    if(link && (link.startsWith('http://') || link.startsWith('https://'))) {
+        window.open(link, '_blank');
+    } else {
+        alert('Nenhum link válido cadastrado para este aluno. Insira a URL completa (ex: https://drive.google.com/...)');
+    }
+};
 
 // ==========================================
 // MÓDULO 6: ROLE-BASED ACCESS CONTROL (RBAC) E DASHBOARDS
@@ -573,6 +634,9 @@ onAuthStateChanged(auth, async (user) => {
                 cargoUsuario = "Administrador"; 
             }
             
+            // Grava a role do usuário globalmente para persistência na interface
+            window.cargoUsuarioLogado = cargoUsuario;
+            
             const pathAtual = window.location.pathname.toLowerCase();
             const isDashboardPage = pathAtual.includes('dashboard.html') || pathAtual === '/' || pathAtual === '';
 
@@ -592,14 +656,15 @@ onAuthStateChanged(auth, async (user) => {
             } 
             // PERFIL: PROFESSOR (APENAS VISUALIZAÇÃO)
             else if (cargoUsuario === "Professor") {
-                document.querySelectorAll('.prof-admin-only').forEach(el => el.style.display = 'block');
+                window.aplicarRegrasRBAC();
                 
                 const rotasProibidas = [
                     'administração/cadastropolo', 'administração/cadastrousuario', 
                     'administração/consultausuario', 'administração/consultapolo', 
                     'administração/editarchamada', 'administração/editarpolo', 
                     'administração/editarusuario', 'alunos/novoaluno', 
-                    'alunos/editaraluno', 'alunos/transferenciaaluno'
+                    'alunos/editaraluno', 'alunos/transferenciaaluno',
+                    'administração/carteirinha'
                 ];
                 
                 const isProibido = rotasProibidas.some(rota => pathAtual.includes(rota));
@@ -620,7 +685,7 @@ onAuthStateChanged(auth, async (user) => {
             }
             // PERFIL: ADMINISTRADOR / COORDENADOR
             else if (cargoUsuario === "Administrador" || cargoUsuario.includes("Coordenador")) {
-                document.querySelectorAll('.admin-only, .prof-admin-only').forEach(el => el.style.display = 'block');
+                window.aplicarRegrasRBAC();
 
                 if (isDashboardPage) {
                     if (alunoDashboardCards) alunoDashboardCards.style.display = 'none';
@@ -874,20 +939,25 @@ if (tabelaUsuarios) {
                     <td>${usuario.nivel_acesso}</td>
                     <td>${usuario.polo}</td>
                     <td><span class="badge ${usuario.status === 'ativo' ? 'bg-success' : 'bg-danger'}">${usuario.status ? usuario.status.toUpperCase() : 'ATIVO'}</span></td>
-                    <td class="admin-only">
+                    <td class="admin-only text-center">
                         <a href="editarUsuario.html?id=${usuario.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Configurar Referência"><i class="bi bi-pencil"></i></a>
                     </td>
                 </tr>
             `;
             tabelaUsuarios.innerHTML += row;
         });
+
+        if (typeof window.aplicarRegrasRBAC === 'function') setTimeout(() => window.aplicarRegrasRBAC(), 50);
     }
 
     function aplicarFiltrosUsuarios() {
         let filtrados = listaDeUsuarios;
         if (inputBuscaUsuario && inputBuscaUsuario.value.trim() !== '') {
             const termo = inputBuscaUsuario.value.toLowerCase();
-            filtrados = filtrados.filter(u => u.nome_completo.toLowerCase().includes(termo) || (u.cpf && u.cpf.includes(termo)));
+            filtrados = filtrados.filter(u => 
+                (u.nome_completo && u.nome_completo.toLowerCase().includes(termo)) || 
+                (u.cpf && u.cpf.includes(termo))
+            );
         }
         if (selectCargoUsuario && selectCargoUsuario.value !== "todos") filtrados = filtrados.filter(u => u.nivel_acesso === selectCargoUsuario.value);
         if (selectPoloUsuario && selectPoloUsuario.value !== "todos" && selectPoloUsuario.value !== "") filtrados = filtrados.filter(u => u.polo === selectPoloUsuario.value);
@@ -1064,12 +1134,14 @@ if (tabelaPolos) {
                 <td>${polo.cidade || '-'}</td>
                 <td>${polo.responsavel || 'Não referenciado'}</td>
                 <td>${badgeStatus}</td>
-                <td class="admin-only">
+                <td class="admin-only text-center">
                     <a href="editarPolo.html?id=${polo.idFirebase}" class="btn btn-sm btn-outline-secondary" title="Gerenciar Unidade"><i class="bi bi-pencil"></i></a>
                 </td>
             `;
             tabelaPolos.appendChild(tr);
         });
+
+        if (typeof window.aplicarRegrasRBAC === 'function') setTimeout(() => window.aplicarRegrasRBAC(), 50);
     }
 
     document.getElementById('busca-nome-polo').addEventListener('input', desenharTabelaPolos);
@@ -1258,8 +1330,8 @@ if (tabelaHistorico) {
                 <td>${chamada.turma}</td>
                 <td>${chamada.professor}</td>
                 <td>${chamada.disciplina}</td>
-                <td>
-                    <div class="d-flex gap-2">
+                <td class="text-center">
+                    <div class="d-flex gap-2 justify-content-center">
                         <button class="btn btn-sm btn-outline-secondary px-3" onclick="abrirRelatorio('${chamada.idFirebase}')" title="Gerar Relatório / Imprimir">
                             <i class="bi bi-printer"></i>
                         </button>
@@ -1271,6 +1343,8 @@ if (tabelaHistorico) {
             `;
             tabelaHistorico.appendChild(tr);
         });
+
+        if (typeof window.aplicarRegrasRBAC === 'function') setTimeout(() => window.aplicarRegrasRBAC(), 50);
     }
 
     window.abrirRelatorio = function(idFirebase) {
@@ -1541,4 +1615,116 @@ if (formMeusDados) {
             btnSalvar.disabled = false;
         }
     });
+}
+
+// ==========================================
+// MÓDULO 18: GERAÇÃO DE CARTEIRINHA ESTUDANTIL
+// ==========================================
+const btnBuscarCart = document.getElementById('btn-buscar-cart');
+const inputBuscarCart = document.getElementById('busca-aluno-cart');
+const selectAlunosCart = document.getElementById('select-alunos-cart');
+const btnGerarCart = document.getElementById('btn-gerar-cart');
+const areaCarteirinha = document.getElementById('area-carteirinha');
+
+if (btnBuscarCart) {
+    let alunosEncontrados = [];
+
+    btnBuscarCart.addEventListener('click', async () => {
+        const termo = inputBuscarCart.value.trim().toLowerCase();
+        if (!termo) { alert("Digite um nome ou CPF para buscar o aluno."); return; }
+
+        const textoOriginal = btnBuscarCart.innerHTML;
+        btnBuscarCart.innerText = "Buscando...";
+        btnBuscarCart.disabled = true;
+
+        try {
+            const querySnapshot = await getDocs(collection(db, "alunos"));
+            alunosEncontrados = [];
+            
+            querySnapshot.forEach(doc => {
+                const aluno = doc.data();
+                
+                const nomeSeguro = aluno.nome_completo ? aluno.nome_completo.toLowerCase() : "";
+                const cpfSeguro = aluno.cpf ? aluno.cpf : "";
+                
+                if (nomeSeguro.includes(termo) || cpfSeguro.includes(termo)) {
+                    alunosEncontrados.push({ idFirebase: doc.id, ...aluno });
+                }
+            });
+
+            selectAlunosCart.innerHTML = '<option value="" selected disabled>Selecione o aluno...</option>';
+            
+            if (alunosEncontrados.length === 0) {
+                alert("Nenhum aluno encontrado com este termo.");
+                document.getElementById('container-select-aluno').style.display = 'none';
+                areaCarteirinha.style.display = 'none';
+            } else {
+                alunosEncontrados.forEach((aluno, index) => {
+                    const nomeExibir = aluno.nome_completo ? aluno.nome_completo.toUpperCase() : "ALUNO SEM NOME";
+                    const cpfExibir = aluno.cpf ? aluno.cpf : "SEM CPF";
+                    selectAlunosCart.innerHTML += `<option value="${index}">${nomeExibir} (CPF: ${cpfExibir})</option>`;
+                });
+                document.getElementById('container-select-aluno').style.display = 'flex';
+            }
+        } catch (error) {
+            console.error("Erro ao buscar alunos para a carteirinha:", error);
+            alert("Erro na conexão com o banco de dados. Verifique sua internet.");
+        } finally {
+            btnBuscarCart.innerHTML = '<i class="bi bi-search"></i> Buscar';
+            btnBuscarCart.disabled = false;
+        }
+    });
+
+    if (btnGerarCart) {
+        btnGerarCart.addEventListener('click', () => {
+            const index = selectAlunosCart.value;
+            if (index === "") { alert("Selecione um aluno na lista primeiro."); return; }
+
+            const aluno = alunosEncontrados[index];
+            const matricula = aluno.idFirebase.substring(0, 5).toUpperCase();
+
+            document.getElementById('cart-nome').innerText = aluno.nome_completo ? aluno.nome_completo.toUpperCase() : 'NÃO INFORMADO';
+            document.getElementById('cart-cpf').innerText = aluno.cpf || 'N/A';
+            document.getElementById('cart-matricula').innerText = '#' + matricula;
+            document.getElementById('cart-polo').innerText = aluno.polo ? aluno.polo.toUpperCase() : 'GLOBAL';
+            
+            // Tratamento da Data de Nascimento
+            let nascTexto = 'N/A';
+            if (aluno.data_nascimento) {
+                const parts = aluno.data_nascimento.split('-');
+                if (parts.length === 3) nascTexto = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                else nascTexto = aluno.data_nascimento;
+            }
+            if(document.getElementById('cart-nascimento')) {
+                document.getElementById('cart-nascimento').innerText = nascTexto;
+            }
+            
+            let turmaFormatada = aluno.turma ? aluno.turma : 'GERAL';
+            if (turmaFormatada.includes('-')) turmaFormatada = turmaFormatada.split('-')[0].trim();
+            document.getElementById('cart-turma').innerText = turmaFormatada.toUpperCase();
+            
+            // Lógica de cálculo: Validade de 1 ano a partir da data de cadastro
+            let validadeTexto = "12/" + (new Date().getFullYear() + 1); // fallback seguro
+            if (aluno.data_cadastro) {
+                let dataCad;
+                if (typeof aluno.data_cadastro.toDate === 'function') {
+                    dataCad = aluno.data_cadastro.toDate();
+                } else if (aluno.data_cadastro.seconds) {
+                    dataCad = new Date(aluno.data_cadastro.seconds * 1000);
+                } else {
+                    dataCad = new Date(aluno.data_cadastro);
+                }
+                
+                if (!isNaN(dataCad.getTime())) {
+                    dataCad.setFullYear(dataCad.getFullYear() + 1); // Soma exatamente 1 ano
+                    const mes = String(dataCad.getMonth() + 1).padStart(2, '0');
+                    const ano = dataCad.getFullYear();
+                    validadeTexto = `${mes}/${ano}`;
+                }
+            }
+            document.getElementById('cart-validade').innerText = validadeTexto;
+
+            areaCarteirinha.style.display = 'block';
+        });
+    }
 }
