@@ -277,7 +277,7 @@ if (btnCarregarTurma) {
         const selectPoloNode = document.getElementById('polo-chamada');
         const poloSelecionado = selectPoloNode ? selectPoloNode.value : null;
 
-        if (!turmaSelecionada || turmaSelecionada === "Selecione..." || !poloSelecionado || poloSelecionado === "") {
+        if (!turmaSelecionada || turmaSelecionada === "Selecione..." || turmaSelecionada === "" || !poloSelecionado || poloSelecionado === "") {
             alert("Restrição: É necessário definir os parâmetros de Polo e Turma para a extração da lista.");
             return;
         }
@@ -362,11 +362,9 @@ if (btnCarregarTurma) {
             const data = document.getElementById('data-chamada').value;
             const polo = document.getElementById('polo-chamada') ? document.getElementById('polo-chamada').value : "";
             const turma = document.getElementById('turma-chamada').value;
-            const prof = document.getElementById('prof-chamada').value.trim();
-            const disc = document.getElementById('disc-chamada').value.trim();
 
-            if (!data || turma === "Selecione..." || !polo || polo === "" || !prof || !disc) {
-                alert("Restrição de integridade: Preenchimento obrigatório dos campos-chave (Data, Polo, Turma, Docente e Disciplina).");
+            if (!data || turma === "Selecione..." || turma === "" || !polo || polo === "") {
+                alert("Restrição de integridade: Preenchimento obrigatório dos campos-chave (Data, Polo e Turma).");
                 return;
             }
             if (listaChamada.length === 0) { alert("Falha lógica: O vetor de presença está vazio."); return; }
@@ -387,13 +385,11 @@ if (btnCarregarTurma) {
 
             try {
                 await addDoc(collection(db, "chamadas"), {
-                    data: data, polo: polo, turma: turma, professor: prof, disciplina: disc, alunos: registrosDePresenca, data_registro: new Date()
+                    data: data, polo: polo, turma: turma, alunos: registrosDePresenca, data_registro: new Date()
                 });
 
                 alert("Transação efetuada: Documento de presença persistido na base de dados.");
                 
-                document.getElementById('prof-chamada').value = '';
-                document.getElementById('disc-chamada').value = '';
                 document.getElementById('nome-visitante').value = '';
                 listaChamada = [];
                 tabelaChamada.innerHTML = '<tr><td colspan="3" class="text-center py-5 text-muted">Aguardando novos parâmetros para consulta.</td></tr>';
@@ -1151,7 +1147,7 @@ if (tabelaPolos) {
 }
 
 // ==========================================
-// MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA
+// MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA (POLOS E TURMAS)
 // ==========================================
 async function preencherPolosDinamicos() {
     const selectsPolos = document.querySelectorAll('.dynamic-polo-select, #filtro-polo, #filtro-polo-usuario');
@@ -1175,7 +1171,7 @@ async function preencherPolosDinamicos() {
                 select.innerHTML = '<option value="todos">Mostrar Todos os Polos</option>';
                 if (select.id === 'filtro-polo-usuario') select.innerHTML += '<option value="Global"> Apenas Funcionários Globais</option>';
             } else {
-                select.innerHTML = '<option value="" disabled>Selecione a alocação...</option>';
+                select.innerHTML = '<option value="" selected disabled>Selecione a alocação...</option>';
                 if (select.id === 'edit-polo-usuario' || select.id === 'polo-usuario') select.innerHTML += '<option value="Global"> Atuação Global (Rede Completa)</option>';
             }
 
@@ -1186,9 +1182,51 @@ async function preencherPolosDinamicos() {
                 else select.value = valorSalvo;
             }
         });
+
+        configurarTurmasDinamicas(); 
+
     } catch (error) {
         console.error("Falha do parser dinâmico na requisição da lista de polos:", error);
     }
+}
+
+function configurarTurmasDinamicas() {
+    
+    const selectPoloAluno = document.getElementById('polo');
+    const selectTurmaAluno = document.getElementById('turma');
+
+    const selectPoloChamada = document.getElementById('polo-chamada');
+    const selectTurmaChamada = document.getElementById('turma-chamada');
+
+    const atualizarTurmas = (poloElement, turmaElement) => {
+        if (!poloElement || !turmaElement) return;
+
+        poloElement.addEventListener('change', (e) => {
+            const poloSelecionado = e.target.value.toLowerCase();
+            
+            
+            turmaElement.innerHTML = '<option selected disabled value="">Selecione a turma...</option>';
+            turmaElement.disabled = false;
+
+            
+            if (poloSelecionado.includes('lúcia') || poloSelecionado.includes('lucia')) {
+                const turmasLucia = ['Carolina Maria', 'Nelson Mandela', 'Luiz Gama', 'Dandara dos Palmares'];
+                turmasLucia.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
+            } 
+            else if (poloSelecionado.includes('heitor')) {
+                const turmasHeitor = ['Conceição Evaristo', 'Machado de Assis', 'Zumbi dos Palmares'];
+                turmasHeitor.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
+            } 
+            else {
+                
+                turmaElement.innerHTML += `<option value="Turma Única">Turma Única</option>`;
+            }
+        });
+    };
+
+  
+    atualizarTurmas(selectPoloAluno, selectTurmaAluno);
+    atualizarTurmas(selectPoloChamada, selectTurmaChamada);
 }
 
 preencherPolosDinamicos();
