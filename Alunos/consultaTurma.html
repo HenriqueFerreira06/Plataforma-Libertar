@@ -25,8 +25,8 @@
                     <a href="javascript:void(0)" class="active"><i class="bi bi-people-fill"></i> Alunos</a>
                     <ul class="submenu">
                         <li class="admin-only"><a href="novoAluno.html"><i class="bi bi-plus-lg"></i> Novo Aluno</a></li>
-                        <li class="prof-admin-only"><a href="consultaAluno.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-search"></i> Localizar Aluno</a></li>
-                        <li class="prof-admin-only"><a href="consultaTurma.html"><i class="bi bi-collection"></i> Localizar Turma</a></li>
+                        <li class="prof-admin-only"><a href="consultaAluno.html"><i class="bi bi-search"></i> Localizar Aluno</a></li>
+                        <li class="prof-admin-only"><a href="consultaTurma.html" style="font-weight: bold; color: var(--side-logo-bg) !important;"><i class="bi bi-collection"></i> Localizar Turma</a></li>
                     </ul>
                 </li>
 
@@ -70,11 +70,8 @@
                     </div>
                     <div class="col-md-5">
                         <label class="form-label">Turma</label>
-                        <select class="form-select dash-input" id="filtro-turma-lista">
-                            <option selected value="todas">Selecione a turma...</option>
-                            <option value="Turma A - Manhã">Turma A - Manhã</option>
-                            <option value="Turma B - Tarde">Turma B - Tarde</option>
-                            <option value="Turma C - Noite">Turma C - Noite</option>
+                        <select class="form-select dash-input" id="filtro-turma-lista" disabled>
+                            <option selected value="todas">Selecione o polo primeiro...</option>
                         </select>
                     </div>
                     <div class="col-md-2">

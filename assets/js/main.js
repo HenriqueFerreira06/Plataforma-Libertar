@@ -459,7 +459,6 @@ if (formEditarAluno) {
             if (docSnap.exists()) {
                 const aluno = docSnap.data();
                 
-                // Preenche formulário com os novos dados adicionados
                 document.getElementById('edit-id').value = id;
                 document.getElementById('edit-nome').value = aluno.nome_completo || "";
                 if(document.getElementById('edit-nome-social')) document.getElementById('edit-nome-social').value = aluno.nome_social || "";
@@ -469,13 +468,18 @@ if (formEditarAluno) {
                 if(document.getElementById('edit-nascimento')) document.getElementById('edit-nascimento').value = aluno.data_nascimento || "";
                 if(document.getElementById('edit-genero')) document.getElementById('edit-genero').value = aluno.genero || "";
                 if(document.getElementById('edit-celular')) document.getElementById('edit-celular').value = aluno.celular || "";
-                document.getElementById('edit-polo').value = aluno.polo || "";
-                document.getElementById('edit-turma').value = aluno.turma || "";
                 document.getElementById('edit-status').value = aluno.status || "";
                 
                 if(document.getElementById('edit-link-lgpd')) {
                     document.getElementById('edit-link-lgpd').value = aluno.link_lgpd || "";
                 }
+
+                
+                const poloElement = document.getElementById('edit-polo');
+                poloElement.value = aluno.polo || "";
+                poloElement.dispatchEvent(new Event('change'));
+                
+                document.getElementById('edit-turma').value = aluno.turma || "";
 
                 calcularFrequenciaDoAluno(id, aluno.turma);
             } else {
@@ -577,7 +581,7 @@ if (formEditarAluno) {
     }
 }
 
-// Função Global para Abrir Link da LGPD
+
 window.abrirLinkLGPD = function() {
     const link = document.getElementById('edit-link-lgpd') ? document.getElementById('edit-link-lgpd').value : null;
     if(link && (link.startsWith('http://') || link.startsWith('https://'))) {
@@ -1147,7 +1151,7 @@ if (tabelaPolos) {
 }
 
 // ==========================================
-// MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA (POLOS E TURMAS)
+// MÓDULO 12: MIDDLEWARE DE POPULAÇÃO DINÂMICA
 // ==========================================
 async function preencherPolosDinamicos() {
     const selectsPolos = document.querySelectorAll('.dynamic-polo-select, #filtro-polo, #filtro-polo-usuario');
@@ -1171,7 +1175,7 @@ async function preencherPolosDinamicos() {
                 select.innerHTML = '<option value="todos">Mostrar Todos os Polos</option>';
                 if (select.id === 'filtro-polo-usuario') select.innerHTML += '<option value="Global"> Apenas Funcionários Globais</option>';
             } else {
-                select.innerHTML = '<option value="" selected disabled>Selecione a alocação...</option>';
+                select.innerHTML = '<option value="" disabled>Selecione a alocação...</option>';
                 if (select.id === 'edit-polo-usuario' || select.id === 'polo-usuario') select.innerHTML += '<option value="Global"> Atuação Global (Rede Completa)</option>';
             }
 
@@ -1192,45 +1196,53 @@ async function preencherPolosDinamicos() {
 
 function configurarTurmasDinamicas() {
     
-    const selectPoloAluno = document.getElementById('polo');
-    const selectTurmaAluno = document.getElementById('turma');
+    const selects = [
+        { polo: 'polo', turma: 'turma', isFiltro: false },
+        { polo: 'polo-chamada', turma: 'turma-chamada', isFiltro: false },
+        { polo: 'edit-polo', turma: 'edit-turma', isFiltro: false },
+        { polo: 'filtro-polo', turma: 'filtro-turma', isFiltro: true },
+        { polo: 'filtro-polo-turma', turma: 'filtro-turma-lista', isFiltro: true }
+    ];
 
-    const selectPoloChamada = document.getElementById('polo-chamada');
-    const selectTurmaChamada = document.getElementById('turma-chamada');
+    selects.forEach(pair => {
+        const poloElement = document.getElementById(pair.polo);
+        const turmaElement = document.getElementById(pair.turma);
 
-    const atualizarTurmas = (poloElement, turmaElement) => {
-        if (!poloElement || !turmaElement) return;
-
-        poloElement.addEventListener('change', (e) => {
-            const poloSelecionado = e.target.value.toLowerCase();
-            
-            
-            turmaElement.innerHTML = '<option selected disabled value="">Selecione a turma...</option>';
-            turmaElement.disabled = false;
-
-            
-            if (poloSelecionado.includes('lúcia') || poloSelecionado.includes('lucia')) {
-                const turmasLucia = ['Carolina Maria', 'Nelson Mandela', 'Luiz Gama', 'Dandara dos Palmares'];
-                turmasLucia.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
-            } 
-            else if (poloSelecionado.includes('heitor')) {
-                const turmasHeitor = ['Conceição Evaristo', 'Machado de Assis', 'Zumbi dos Palmares'];
-                turmasHeitor.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
-            } 
-            else {
+        if (poloElement && turmaElement) {
+            poloElement.addEventListener('change', (e) => {
+                const poloSelecionado = e.target.value.toLowerCase();
                 
-                turmaElement.innerHTML += `<option value="Turma Única">Turma Única</option>`;
-            }
-        });
-    };
+                
+                if (pair.isFiltro) {
+                    turmaElement.innerHTML = '<option selected value="todos">Todas as Turmas</option>';
+                } else {
+                    turmaElement.innerHTML = '<option selected disabled value="">Selecione a turma...</option>';
+                }
+                
+                turmaElement.disabled = false;
 
-  
-    atualizarTurmas(selectPoloAluno, selectTurmaAluno);
-    atualizarTurmas(selectPoloChamada, selectTurmaChamada);
+                
+                if (poloSelecionado === 'todos' || poloSelecionado === 'global') {
+                    
+                    if (!pair.isFiltro) turmaElement.disabled = true; 
+                } 
+                else if (poloSelecionado.includes('lúcia') || poloSelecionado.includes('lucia')) {
+                    const turmasLucia = ['Carolina Maria', 'Nelson Mandela', 'Luiz Gama', 'Dandara dos Palmares'];
+                    turmasLucia.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
+                } 
+                else if (poloSelecionado.includes('heitor')) {
+                    const turmasHeitor = ['Conceição Evaristo', 'Machado de Assis', 'Zumbi dos Palmares'];
+                    turmasHeitor.forEach(t => turmaElement.innerHTML += `<option value="${t}">${t}</option>`);
+                } 
+                else {
+                    turmaElement.innerHTML += `<option value="Turma Única">Turma Única</option>`;
+                }
+            });
+        }
+    });
 }
 
 preencherPolosDinamicos();
-
 // ==========================================
 // MÓDULO 13: ATUALIZAÇÃO E EXCLUSÃO DE POLOS (editarPolo.html)
 // ==========================================
