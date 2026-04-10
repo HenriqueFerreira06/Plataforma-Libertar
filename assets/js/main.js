@@ -1328,7 +1328,7 @@ if (tabelaHistorico) {
     let listaHistorico = []; 
 
     async function carregarHistoricoNoBanco() {
-        tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center py-4">Sincronizando registros com o banco de dados...</td></tr>';
+        tabelaHistorico.innerHTML = '<tr><td colspan="4" class="text-center py-4">Sincronizando registros com o banco de dados...</td></tr>';
         
         try {
             const querySnapshot = await getDocs(collection(db, "chamadas"));
@@ -1342,7 +1342,7 @@ if (tabelaHistorico) {
             aplicarFiltrosHistorico(); 
         } catch (error) {
             console.error("Falha na extração do histórico de chamadas:", error);
-            tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Erro de comunicação com o servidor Firestore.</td></tr>';
+            tabelaHistorico.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Erro de comunicação com o servidor Firestore.</td></tr>';
         }
     }
 
@@ -1366,7 +1366,7 @@ if (tabelaHistorico) {
         tabelaHistorico.innerHTML = '';
 
         if (dadosParaMostrar.length === 0) {
-            tabelaHistorico.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Nenhum registro atende aos critérios do filtro.</td></tr>';
+            tabelaHistorico.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Nenhum registro atende aos critérios do filtro.</td></tr>';
             return;
         }
 
@@ -1378,8 +1378,6 @@ if (tabelaHistorico) {
                 <td class="fw-bold" style="color: var(--side-logo-bg);">${dataFormatada}</td>
                 <td>${chamada.polo || 'Global/Não Definido'}</td>
                 <td>${chamada.turma}</td>
-                <td>${chamada.professor}</td>
-                <td>${chamada.disciplina}</td>
                 <td class="text-center">
                     <div class="d-flex gap-2 justify-content-center">
                         <button class="btn btn-sm btn-outline-secondary px-3" onclick="abrirRelatorio('${chamada.idFirebase}')" title="Gerar Relatório / Imprimir">
@@ -1405,8 +1403,6 @@ if (tabelaHistorico) {
         document.getElementById('rel-data').innerText = chamada.data.split('-').reverse().join('/');
         document.getElementById('rel-polo').innerText = chamada.polo || 'Não Identificado';
         document.getElementById('rel-turma').innerText = chamada.turma;
-        document.getElementById('rel-prof').innerText = chamada.professor;
-        document.getElementById('rel-disc').innerText = chamada.disciplina;
 
         const dataHoraAtual = new Date();
         document.getElementById('rel-gerado-em').innerText = dataHoraAtual.toLocaleString('pt-BR');
@@ -1442,7 +1438,6 @@ if (tabelaHistorico) {
     document.getElementById('btn-filtrar-historico').addEventListener('click', aplicarFiltrosHistorico);
     carregarHistoricoNoBanco();
 }
-
 // ==========================================
 // MÓDULO 15: EDIÇÃO E EXCLUSÃO DE CHAMADAS (editarChamada.html)
 // ==========================================
